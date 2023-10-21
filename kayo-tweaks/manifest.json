@@ -1,0 +1,30 @@
+{
+  "name": "Kayo tweaks",
+  "description": "Some helpful improvements for the Kayo Sports site",
+  "version": "1.0",
+  "manifest_version": 3,
+  "icons": {
+    "128": "icon_128.png"
+  },
+  "permissions": [
+    "declarativeContent",
+    "scripting"
+  ],
+  "host_permissions": ["https://kayosports.com.au/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://kayosports.com.au/*"],
+      "js": ["content-script.js"],
+      "world": "MAIN"
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "128": "icon_128.png"
+    },
+    "default_title": "Load saved time"
+  }
+}
