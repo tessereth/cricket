@@ -60,6 +60,32 @@ window.kayoTweaks = {
 
     saveTimePeriodically: () => {
         kayoTweaks.intervalId = setInterval(kayoTweaks.saveTime, kayoTweaks.INTERVAL);
+    },
+
+    toggleFullscreen: () => {
+        if (kayoTweaks.video()) {
+            const button = document.querySelector("button[title*=Fullscreen]");
+            if (button) {
+                button.click();
+            }
+        }
+    },
+
+    changeSpeed: () => {
+        if (kayoTweaks.video()) {
+            const button = document.querySelector("button[title*='playback rate']");
+            if (button) {
+                button.click();
+            }
+        }
+    },
+
+    keyUp: event => {
+        if (event.key === "f") {
+            kayoTweaks.toggleFullscreen();
+        } else if (event.key === "," || event.key === ".") {
+            kayoTweaks.changeSpeed();
+        }
     }
 };
 
@@ -72,3 +98,5 @@ kayoTweaks.loadTime();
 
 // Start tracking where the playback is up to.
 kayoTweaks.saveTimePeriodically();
+
+document.addEventListener("keyup", kayoTweaks.keyUp);
