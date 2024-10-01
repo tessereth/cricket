@@ -2,54 +2,93 @@
 
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Game replay</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
   </head>
   <body>
-    <h1>
-      <span id="homeTeam">Australia</span>
-      vs
-      <span id="awayTeam">South Africa</span>
-    </h1>
-    <p>
-      <span id="format">T20I</span>
-      -
-      <span id="date">1st Jan 2024</span>
-    </p>
-    <form action="javascript:void(0);">
-      <label for="innings">Innings</label>
-      <input id="innings" name="innings" type="number" value="0">
-      <label for="over">Over</label>
-      <input id="over" name="over" type="number" value="1">
-      <label for="ball">Ball</label>
-      <input id="ball" name="ball" type="number" value="0">
-      <button onClick="updateOnClick()">Update</button>
-      <button onClick="previousOnClick()">Previous</button>
-      <button onClick="nextOnClick()">Next</button>
-    </form>
-    <h2>Batter scorecard</h2>
-    <table>
-      <thead>
-        <th>Player</th>
-        <th>Wicket</th>
-        <th>Runs</th>
-        <th>Balls</th>
-      </thead>
-      <tbody id="batter-scorecard">
-      </tbody>
-    </table>
-    <h2>Bowler scorecard</h2>
-    <table>
-      <thead>
-        <th>Player</th>
-        <th>Overs</th>
-        <th>Runs</th>
-        <th>Wickets</th>
-        <th>Wides</th>
-        <th>No balls</th>
-      </thead>
-      <tbody id="bowler-scorecard">
-      </tbody>
-    </table>
+    <section class="hero is-primary">
+      <div class="hero-body">
+        <h1 class="title">
+          <span id="homeTeam">Australia</span>
+          vs
+          <span id="awayTeam">South Africa</span>
+        </h1>
+        <p class="subtitle">
+          <span id="format">T20I</span>
+          -
+          <span id="date">1st Jan 2024</span>
+        </p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <form action="javascript:void(0);">
+          <div class="field">
+            <label for="innings">Innings</label>
+            <div class="control">
+              <input class="input" id="innings" name="innings" type="number" value="0">
+            </div>
+          </div>
+          <div class="field">
+            <label for="over">Over</label>
+            <div class="control">
+              <input class="input" id="over" name="over" type="number" value="1">
+            </div>
+          </div>
+          <div class="field">
+            <label for="ball">Ball</label>
+            <div class="control">
+              <input class="input" id="ball" name="ball" type="number" value="0">
+            </div>
+          </div>
+          <div class="field is-grouped">
+            <div class="control">
+              <button class="button is-primary" onClick="updateOnClick()">Update</button>
+            </div>
+            <div class="control">
+              <button class="button is-light" onClick="previousOnClick()">Previous</button>
+            </div>
+            <div class="control">
+              <button class="button is-light" onClick="nextOnClick()">Next</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <h2 class="title">Batter scorecard</h2>
+        <table class="table">
+          <thead>
+            <th>Player</th>
+            <th>Wicket</th>
+            <th>Runs</th>
+            <th>Balls</th>
+          </thead>
+          <tbody id="batter-scorecard">
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <h2 class="title">Bowler scorecard</h2>
+        <table class="table">
+          <thead>
+            <th>Player</th>
+            <th>Overs</th>
+            <th>Runs</th>
+            <th>Wickets</th>
+            <th>Wides</th>
+            <th>No balls</th>
+          </thead>
+          <tbody id="bowler-scorecard">
+          </tbody>
+        </table>
+      </div>
+    </section>
     <script src="./replay.js"></script>
   </body>
 </html>

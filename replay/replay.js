@@ -164,7 +164,6 @@ function generateScorecard(cursor) {
   for (let over = 0; over < cursor.over; over++) {
     const ballCount = over === cursor.over - 1 ? cursor.ball : oversData[cursor.innings][over].balls.length
     for (let ball = 0; ball < ballCount; ball++) {
-      // TODO: select innings
       scorecard.addBall(oversData[cursor.innings][over].balls[ball])
     }
   }
