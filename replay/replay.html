@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Game replay</title>
+  </head>
+  <body>
+    <h1>
+      <span id="homeTeam">Australia</span>
+      vs
+      <span id="awayTeam">South Africa</span>
+    </h1>
+    <p>
+      <span id="format">T20I</span>
+      -
+      <span id="date">1st Jan 2024</span>
+    </p>
+    <form action="javascript:void(0);">
+      <label for="innings">Innings</label>
+      <input id="innings" name="innings" type="number" value="1">
+      <label for="over">Over</label>
+      <input id="over" name="over" type="number" value="1">
+      <label for="ball">Ball</label>
+      <input id="ball" name="ball" type="number" value="0">
+      <button onClick="updateOnClick()">Update</button>
+    </form>
+    <h2>Batter scorecard</h2>
+    <table>
+      <thead>
+        <th>Player</th>
+        <th>Wicket</th>
+        <th>Runs</th>
+        <th>Balls</th>
+      </thead>
+      <tbody id="batter-scorecard">
+      </tbody>
+    </table>
+    <h2>Bowler scorecard</h2>
+    <table>
+      <thead>
+        <th>Player</th>
+        <th>Overs</th>
+        <th>Runs</th>
+        <th>Wickets</th>
+      </thead>
+      <tbody id="bowler-scorecard">
+      </tbody>
+    </table>
+    <script src="./replay.js"></script>
+  </body>
+</html>
