@@ -74,6 +74,24 @@ class BatterScore {
       this.out = true
     }
   }
+
+  get dismissalText() {
+    if (this.out) {
+      return this.player.dismissalText
+    } else if (this.balls > 0) {
+      return 'not out'
+    } else {
+      return null
+    }
+  }
+
+  get runsText() {
+    if (!this.out && this.balls > 0) {
+      return `${this.runs}*`
+    } else {
+      return this.runs.toString()
+    }
+  }
 }
 
 class BowlerScore {
@@ -162,10 +180,10 @@ function renderBatterScorecard(scorecard) {
     name.textContent = players.get(batter.id).displayName
     row.appendChild(name)
     const wicket = document.createElement("td")
-    wicket.textContent = "TODO"
+    wicket.textContent = batter.dismissalText
     row.appendChild(wicket)
     const runs = document.createElement("td")
-    runs.textContent = batter.runs
+    runs.textContent = batter.runsText
     row.appendChild(runs)
     const balls = document.createElement("td")
     balls.textContent = batter.balls
