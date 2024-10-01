@@ -1,43 +1,57 @@
 const fixtureUri = (fixtureId) => `https://apiv2.cricket.com.au/web/views/scorecard?fixtureId=${fixtureId}&jsconfig=eccn%3Atrue&format=json`
 const ballsUri = (fixtureId, inningNumber) => `https://apiv2.cricket.com.au/web/views/comments?fixtureId=${fixtureId}&inningNumber=${inningNumber}&jsconfig=eccn%3Atrue&format=json`
 
-let fixtureData;
-let oversData;
-let players;
+let fixtureData
+let oversData
+let teams
+let players
+let inningsTab
+let cursors
 
 async function loadData(fixtureId) {
   const fixture = await fetch(fixtureUri(fixtureId))
   fixtureData = await fixture.json()
+  inningsTab = 0
   oversData = []
-  // TODO: more than 2 innings
-  for (let innings = 1; innings <= 2; innings++) {
-    inningsOvers = await loadBallData(ballsUri(fixtureId, innings), [])
-    // Remove fake over zero
-    if (inningsOvers[0].overNumber === 0) {
-      inningsOvers.shift()
-    }
+  cursors = []
+  for (let innings = 0; innings < fixtureData.fixture.innings.length; innings++) {
+    inningsOvers = await loadInningsData(ballsUri(fixtureId, innings + 1), null)
     oversData.push(inningsOvers)
+    cursors.push({over: 1, ball: 0})
   }
 
+  teams = new Map()
+  teams.set(fixtureData.fixture.homeTeam.id, fixtureData.fixture.homeTeam)
+  teams.set(fixtureData.fixture.awayTeam.id, fixtureData.fixture.awayTeam)
   players = new Map()
   fixtureData.players.forEach((player) => {
     players.set(player.id, player)
   })
+
 }
 
-async function loadBallData(uri, acc) {
-  const balls = await fetch(uri)
-  const data = await balls.json()
-  const overs = data.inning.overs.reverse()
+async function loadInningsData(uri, acc) {
+  const response = await fetch(uri)
+  const innings = await response.json()
+  const overs = innings.inning.overs.reverse()
+  // Remove fake over zero
+  if (overs[0].overNumber === 0) {
+    overs.shift()
+  }
   overs.forEach((over) => (
     over.balls = over.balls.reverse()
   ))
-  if (overs[0].overNumber > 1) {
-    console.log("Loading next page: ", data.nextPage)
-    const nextPage = "https://apiv2.cricket.com.au/web" + data.nextPage
-    return await loadBallData(nextPage, overs.concat(acc))
+  if (acc === null) {
+    acc = innings.inning
   } else {
-    return overs.concat(acc)
+    acc.overs = overs.concat(acc.overs)
+  }
+  if (overs[0].overNumber > 1) {
+    console.log("Loading next page: ", innings.nextPage)
+    const nextPage = "https://apiv2.cricket.com.au/web" + innings.nextPage
+    return await loadInningsData(nextPage, acc)
+  } else {
+    return acc
   }
 }
 
@@ -126,7 +140,11 @@ class BowlerScore {
   }
 
   get overs() {
-    return `${Math.floor(this.balls / 6)}.${this.balls % 6}`
+    if (this.balls % 6 === 0) {
+      return Math.floor(this.balls / 6).toString()
+    } else {
+      return `${Math.floor(this.balls / 6)}.${this.balls % 6}`
+    }
   }
 }
 
@@ -137,10 +155,12 @@ class Scorecard {
     this.bowlers = this.innings.bowlers.map((x) => new BowlerScore(x))
     this.runs = 0
     this.wickets = 0
+    this.started = false
   }
 
   addBall(ball) {
     console.log(ball)
+    this.started = true
     this.batters.forEach((batter) => {
       if (batter.id == ball.battingPlayerId) {
         batter.addBall(ball)
@@ -156,18 +176,40 @@ class Scorecard {
       this.wickets += 1
     }
   }
+
+  scoreString() {
+    if (this.wickets < 10) {
+      return `${this.wickets}-${this.runs}`
+    } else {
+      return this.runs.toString()
+    }
+  }
 }
 
-function generateScorecard(cursor) {
+function generateScorecard(innings) {
+  const cursor = cursors[innings]
   console.log(cursor)
-  const scorecard = new Scorecard(fixtureData.fixture.innings[cursor.innings])
+  const scorecard = new Scorecard(fixtureData.fixture.innings[innings])
   for (let over = 0; over < cursor.over; over++) {
-    const ballCount = over === cursor.over - 1 ? cursor.ball : oversData[cursor.innings][over].balls.length
+    const ballCount = over === cursor.over - 1 ? cursor.ball : oversData[innings].overs[over].balls.length
     for (let ball = 0; ball < ballCount; ball++) {
-      scorecard.addBall(oversData[cursor.innings][over].balls[ball])
+      scorecard.addBall(oversData[innings].overs[over].balls[ball])
     }
   }
   return scorecard
+}
+
+function renderAll() {
+  const scorecards = []
+  for (let i = 0; i < oversData.length; i ++) {
+    scorecards.push(generateScorecard(i))
+  }
+  console.log(scorecards)
+  renderHero()
+  renderInningsTabs(scorecards)
+  renderBatterScorecard(scorecards[inningsTab])
+  renderBowlerScorecard(scorecards[inningsTab])
+  renderCursorForm()
 }
 
 function renderBatterScorecard(scorecard) {
@@ -218,71 +260,96 @@ function renderBowlerScorecard(scorecard) {
   })
 }
 
-function getCursor() {
-  return {
-    innings: parseInt(document.getElementById("innings").value),
-    over: parseInt(document.getElementById("over").value),
-    ball: parseInt(document.getElementById("ball").value) 
+function scoreString(innings) {
+  const runs = innings.runsScored
+  const wickets = innings.numberOfWicketsFallen
+
+  if (innings.isDeclared) {
+    return `${wickets}d-${runs}`
+  } else if (wickets < 10) {
+    return `${wickets}-${runs}`
+  } else {
+    return runs.toString()
   }
 }
 
-function setCursor(cursor) {
-  document.getElementById("innings").value = cursor.innings
-  document.getElementById("over").value = cursor.over
-  document.getElementById("ball").value = cursor.ball
+function renderInningsTabs(scorecards) {
+  for (let i = 0; i < oversData.length; i++) {
+    const tab = document.getElementById(`innings-tab-${i}`)
+    const team = teams.get(oversData[i].battingTeamId).shortName
+    if (i === inningsTab) {
+      tab.classList.add("is-active")
+    } else {
+      tab.classList.remove("is-active")
+    }
+    if (scorecards[i].started) {
+      tab.firstChild.textContent = `${team} ${scorecards[i].scoreString()}`
+    } else {
+      tab.firstChild.textContent = team
+    }
+  }
+}
+
+function renderHero() {
+  document.getElementById("homeTeam").innerHTML = fixtureData.fixture.homeTeam.name
+  document.getElementById("awayTeam").innerHTML = fixtureData.fixture.awayTeam.name
+  document.getElementById("format").innerHTML = fixtureData.fixture.gameType
+  document.getElementById("date").innerHTML = new Date(fixtureData.fixture.startDateTime).toDateString()
+}
+
+function renderCursorForm() {
+  document.getElementById("over").value = cursors[inningsTab].over
+  document.getElementById("ball").value = cursors[inningsTab].ball
+}
+
+function incrementCursor(innings) {
+  const cursor = cursors[innings]
+  if (cursor.ball < oversData[innings].overs[cursor.over].balls.length - 1) {
+    cursor.ball++
+  } else if (cursor.over < oversData[innings].overs.length - 1) {
+    cursor.over++
+    cursor.ball = 0
+  }
+}
+
+function decrementCursor(innings) {
+  const cursor = cursors[innings]
+  if (cursor.ball > 0) {
+    cursor.ball--
+  } else if (cursor.over > 0) {
+    cursor.over--
+    cursor.ball = oversData[innings].overs[cursor.over].balls.length - 1
+  }
 }
 
 function updateOnClick() {
-  const scorecard = generateScorecard(getCursor())
-  console.log(scorecard)
-  renderBatterScorecard(scorecard)
-  renderBowlerScorecard(scorecard)
+  cursors[inningsTab] = {
+    over: parseInt(document.getElementById("over").value),
+    ball: parseInt(document.getElementById("ball").value)
+  }
+  renderAll()
 }
 
 function nextOnClick() {
-  const cursor = getCursor()
-  if (cursor.ball < oversData[cursor.innings][cursor.over - 1].balls.length - 1) {
-    setCursor({...cursor, ball: cursor.ball + 1})
-  } else if (cursor.over < oversData[cursor.innings].length - 1) {
-    setCursor({...cursor, over: cursor.over + 1, ball: 0})
-  }
-  updateOnClick()
+  incrementCursor(inningsTab)
+  renderAll()
 }
 
 function previousOnClick() {
-  const cursor = getCursor()
-  if (cursor.ball > 0) {
-    setCursor({...cursor, ball: cursor.ball - 1})
-  } else if (cursor.over > 0) {
-    setCursor({...cursor, over: cursor.over - 1, ball: oversData[cursor.innings][cursor.over - 1].balls.length})
-  }
-  updateOnClick()
+  decrementCursor(inningsTab)
+  renderAll()
 }
 
-let liveData = {
-  homeTeam: "",
-  awayTeam: "",
-  format: "",
-  date: "",
-}
-
-function updateUI() {
-  document.getElementById("homeTeam").innerHTML = liveData.homeTeam
-  document.getElementById("awayTeam").innerHTML = liveData.awayTeam
-  document.getElementById("format").innerHTML = liveData.format
-  document.getElementById("date").innerHTML = liveData.date
+function setInnings(innings) {
+  inningsTab = innings
+  renderAll()
 }
 
 async function onLoad() {
   console.log("hi")
   const fixtureId = 17404
   await loadData(fixtureId)
-  liveData.homeTeam = fixtureData.fixture.homeTeam.name
-  liveData.awayTeam = fixtureData.fixture.awayTeam.name
-  liveData.format = fixtureData.fixture.gameType
-  liveData.date = new Date(fixtureData.fixture.startDateTime).toDateString()
-  updateUI()
-  updateOnClick()
+  renderAll()
   console.log("end on load")
 }
 

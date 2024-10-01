@@ -24,13 +24,39 @@
     </section>
     <section class="section">
       <div class="container">
+        <div class="tabs">
+          <ul>
+            <li id="innings-tab-0" class="is-active"><a href="#" onclick="setInnings(0)">Australia</a></li>
+            <li id="innings-tab-1"><a href="#" onclick="setInnings(1)">South Africa</a></li>
+          </ul>
+        </div>
+        <table class="table">
+          <thead>
+            <th>Batting</th>
+            <th>Wicket</th>
+            <th>Runs</th>
+            <th>Balls</th>
+          </thead>
+          <tbody id="batter-scorecard">
+          </tbody>
+        </table>
+        <table class="table">
+          <thead>
+            <th>Bowling</th>
+            <th>Overs</th>
+            <th>Runs</th>
+            <th>Wickets</th>
+            <th>Wides</th>
+            <th>No balls</th>
+          </thead>
+          <tbody id="bowler-scorecard">
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
         <form action="javascript:void(0);">
-          <div class="field">
-            <label for="innings">Innings</label>
-            <div class="control">
-              <input class="input" id="innings" name="innings" type="number" value="0">
-            </div>
-          </div>
           <div class="field">
             <label for="over">Over</label>
             <div class="control">
@@ -55,38 +81,6 @@
             </div>
           </div>
         </form>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container">
-        <h2 class="title">Batter scorecard</h2>
-        <table class="table">
-          <thead>
-            <th>Player</th>
-            <th>Wicket</th>
-            <th>Runs</th>
-            <th>Balls</th>
-          </thead>
-          <tbody id="batter-scorecard">
-          </tbody>
-        </table>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container">
-        <h2 class="title">Bowler scorecard</h2>
-        <table class="table">
-          <thead>
-            <th>Player</th>
-            <th>Overs</th>
-            <th>Runs</th>
-            <th>Wickets</th>
-            <th>Wides</th>
-            <th>No balls</th>
-          </thead>
-          <tbody id="bowler-scorecard">
-          </tbody>
-        </table>
       </div>
     </section>
     <script src="./replay.js"></script>
