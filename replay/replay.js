@@ -134,7 +134,9 @@ class BatterScore {
   }
 
   get runsText() {
-    if (!this.out && this.balls > 0) {
+    if (this.balls === 0) {
+      return ''
+    } else if (!this.out) {
       return `${this.runs}*`
     } else {
       return this.runs.toString()
@@ -223,6 +225,8 @@ class Scorecard {
     const lastBall = this.balls.slice(-1)[0]
     if (lastBall.isLastBallOfOver) {
       return `${this.currentOver + 1}.0`
+    } else if (lastBall.isIllegalDelivery) {
+      return `${this.currentOver}.${lastBall.ballNumber - 1}`
     } else {
       return `${this.currentOver}.${lastBall.ballNumber}`
     }
@@ -272,6 +276,8 @@ function renderBallByBall(scorecard) {
       text = 'w'
     } else if (ball.type === 'NoBall') {
       text = 'nb'
+    } else if (ball.type === 'LegBye') {
+      text = `${ball.runs}lb`
     } else if (ball.runs === 0) {
       text = '⏺'
     } else {
@@ -293,7 +299,7 @@ function renderBatterScorecard(scorecard) {
     row.appendChild(createElement("td", players.get(batter.id).displayName))
     row.appendChild(createElement("td", batter.dismissalText))
     row.appendChild(createElement("td", batter.runsText))
-    row.appendChild(createElement("td", batter.balls))
+    row.appendChild(createElement("td", batter.balls > 0 ? batter.balls : ''))
     rows.push(row)
   })
   element.replaceChildren(...rows)
@@ -303,6 +309,9 @@ function renderBowlerScorecard(scorecard) {
   const element = document.getElementById("bowler-scorecard")
   const rows = []
   scorecard.bowlers.forEach((bowler) => {
+    if (bowler.balls === 0) {
+      return
+    }
     const row = document.createElement("tr")
     row.appendChild(createElement("td", players.get(bowler.id).displayName))
     row.appendChild(createElement("td", bowler.overs))
@@ -376,8 +385,8 @@ function decrementCursor(innings) {
 
 function updateOnClick() {
   cursors[inningsTab] = {
-    over: parseInt(document.getElementById("over").value),
-    ball: parseInt(document.getElementById("ball").value)
+    over: parseInt(document.getElementById("over").value) + 1,
+    ball: parseInt(document.getElementById("ball").value || '0')
   }
   renderAll()
 }
