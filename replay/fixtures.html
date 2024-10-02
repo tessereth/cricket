@@ -17,6 +17,27 @@
     </section>
     <section class="section">
       <div class="container">
+        <div class="dropdown is-hoverable">
+          <div class="dropdown-trigger">
+            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+              <span>Filter</span>
+            </button>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu" role="menu">
+            <div class="dropdown-content">
+              <a href="?filter=" class="dropdown-item">None</a>
+              <hr class="dropdown-divider" />
+              <a href="?filter=ausMen" class="dropdown-item">Australia Men</a>
+              <a href="?filter=ausWomen" class="dropdown-item">Australia Women</a>
+              <hr class="dropdown-divider" />
+              <a href="?filter=sheffieldShield" class="dropdown-item">Sheffield Shield</a>
+              <a href="?filter=marshCup" class="dropdown-item">Marsh Cup</a>
+              <a href="?filter=WNCL" class="dropdown-item">WNCL</a>
+              <a href="?filter=BBL" class="dropdown-item">BBL</a>
+              <a href="?filter=WBBL" class="dropdown-item">WBBL</a>
+            </div>
+          </div>
+        </div>
         <ul id="fixtures">
         </ul>
       </div>
@@ -29,22 +50,62 @@
               <div class="media">
                 <div class="media-left">
                   <figure class="image is-48x48">
-                    <img data-image
+                    <img data-competition-image
                       src="https://static-files.cricket-australia.pulselive.com/series/2616.png"
                       alt=""
                     />
                   </figure>
                 </div>
                 <div class="media-content">
-                  <p class="title is-4">
-                    <span data-home-team>
-                      West Indies Women
-                    </span>
-                    vs
-                    <span data-away-team>
-                      Australia Women
-                    </span></p>
-                  <p class="subtitle is-6" data-date>01 September 2024</p>
+                  <div class="level">
+                    <div class="level-left">
+                      <div class="level-item">
+                        <div class="media">
+                          <div class="media-left">
+                            <figure class="image is-32x32">
+                              <img data-home-team-image
+                                src="https://static-files.cricket-australia.pulselive.com/flag/686.png"
+                                alt=""
+                              />
+                            </figure>
+                          </div>
+                          <div class="media-content">
+                            <span class="title is-4" data-home-team>
+                              West Indies Women
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="level-right">
+                      <div class="level-item">
+                        <div class="media">
+                          <div class="media-left">
+                            <figure class="image is-32x32">
+                              <img data-away-team-image
+                                src="https://static-files.cricket-australia.pulselive.com/flag/686.png"
+                                alt=""
+                              />
+                            </figure>
+                          </div>
+                          <div class="media-content">
+                            <span class="title is-4" data-away-team>
+                              Australia Women
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="level">
+                    <div class="level-item">
+                      <p class="subtitle is-6">
+                        <span data-game-type>ODI</span>
+                        ·
+                        <span data-date>01 September 2024</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </a>
