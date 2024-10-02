@@ -355,10 +355,14 @@ function renderInningsTabs(scorecards) {
 }
 
 function renderHero() {
-  document.getElementById("homeTeam").innerHTML = fixtureData.fixture.homeTeam.name
-  document.getElementById("awayTeam").innerHTML = fixtureData.fixture.awayTeam.name
-  document.getElementById("format").innerHTML = fixtureData.fixture.gameType
-  document.getElementById("date").innerHTML = new Date(fixtureData.fixture.startDateTime).toDateString()
+  const fixture = fixtureData.fixture
+  document.querySelectorAll("[data-competition-image]")[0].src = fixture.competition.imageUrl
+  document.querySelectorAll("[data-home-team]")[0].textContent = fixture.homeTeam.name
+  document.querySelectorAll("[data-home-team-image]")[0].src = fixture.homeTeam.logoUrl
+  document.querySelectorAll("[data-away-team]")[0].textContent = fixture.awayTeam.name
+  document.querySelectorAll("[data-away-team-image]")[0].src = fixture.awayTeam.logoUrl
+  document.querySelectorAll("[data-date]")[0].textContent = formatDate(fixture.startDateTime, fixture.endDateTime)
+  document.querySelectorAll("[data-game-type]")[0].textContent = fixture.gameType
 }
 
 function incrementCursor(innings) {

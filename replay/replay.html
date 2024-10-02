@@ -10,16 +10,65 @@
   <body>
     <section class="hero is-primary">
       <div class="hero-body">
-        <h1 class="title">
-          <span id="homeTeam">Australia</span>
-          vs
-          <span id="awayTeam">South Africa</span>
-        </h1>
-        <p class="subtitle">
-          <span id="format">T20I</span>
-          -
-          <span id="date">1st Jan 2024</span>
-        </p>
+        <div class="container">
+          <div class="level">
+            <div class="level-left">
+              <div class="level-item">
+                <div class="media">
+                  <div class="media-left">
+                    <figure class="image is-48x48">
+                      <img data-home-team-image
+                        src="https://static-files.cricket-australia.pulselive.com/flag/686.png"
+                        alt=""
+                      />
+                    </figure>
+                  </div>
+                  <div class="media-content">
+                    <span class="title is-3" data-home-team>
+                      West Indies Women
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="level-item">
+              <figure class="image is-96x96">
+                <img data-competition-image
+                  src="https://static-files.cricket-australia.pulselive.com/series/2616.png"
+                  alt=""
+                />
+              </figure>
+            </div>
+            <div class="level-right">
+              <div class="level-item">
+                <div class="media">
+                  <div class="media-left">
+                    <figure class="image is-48x48">
+                      <img data-away-team-image
+                        src="https://static-files.cricket-australia.pulselive.com/flag/686.png"
+                        alt=""
+                      />
+                    </figure>
+                  </div>
+                  <div class="media-content">
+                    <span class="title is-3" data-away-team>
+                      Australia Women
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="level">
+            <div class="level-item">
+              <p class="subtitle is-6">
+                <span data-game-type>ODI</span>
+                ·
+                <span data-date>01 September 2024</span>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     <section class="section">
@@ -96,7 +145,7 @@
               <input class="input" type="number" placeholder="Ball" id="ball" name="ball">
             </div>
             <div class="control">
-              <button class="button is-info" onClick="updateOnClick()">
+              <button class="button is-primary" onClick="updateOnClick()">
                 Go
               </button>
             </div>
@@ -104,6 +153,7 @@
         </form>
       </div>
     </section>
+    <script src="./lib.js"></script>
     <script src="./replay.js"></script>
   </body>
 </html>
