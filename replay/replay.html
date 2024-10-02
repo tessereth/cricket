@@ -31,16 +31,28 @@
           </ul>
         </div>
         <div class="box">
-          <a href="#" onclick="firstOnClick()"><span class="icon">⏮</span></a>
-          <a href="#" onclick="previousOnClick()"><span class="icon">◀</span></a>
-          <span id="ball-by-ball" class="ml-4 mr-4">
-            <span class="icon">6</span>
-            <span class="icon">⏺</span>
-            <span class="icon">|</span>
-            <span class="icon">1</span>
-          </span>
-          <a href="#" onclick="nextOnClick()"><span class="icon">▶</span></a>
-          <a href="#" onclick="lastOnClick()"><span class="icon">⏭</span></a>
+          <div class="level">
+            <div class="level-left">
+              <div class="level-item">
+                <a href="#" onclick="firstOnClick()"><span class="icon">⏮</span></a>
+                <a href="#" onclick="previousOnClick()"><span class="icon">◀</span></a>
+              </div>
+            </div>
+            <div class="level-right is-flex-shrink-1 is-clipped">
+              <div class="level-item">
+                <div id="ball-by-ball" style="white-space: nowrap;">
+                  <span class="icon">6</span>
+                  <span class="icon">⏺</span>
+                  <span class="icon">|</span>
+                  <span class="icon">1</span>
+                </div>
+              </div>
+              <div class="level-item">
+                <a href="#" onclick="nextOnClick()"><span class="icon">▶</span></a>
+                <a href="#" onclick="lastOnClick()"><span class="icon">⏭</span></a>
+              </div>
+            </div>
+          </div>
         </div>
         <table class="table">
           <thead>

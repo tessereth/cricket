@@ -266,7 +266,7 @@ function createElement(tag, content, className=null) {
 function renderBallByBall(scorecard) {
   const element = document.getElementById("ball-by-ball")
   const children = []
-  scorecard.balls.slice(-12).forEach((ball) => {
+  scorecard.balls.forEach((ball) => {
     let text
     if (ball.isWicket) {
       text = 'W'
@@ -284,10 +284,6 @@ function renderBallByBall(scorecard) {
       children.push(createElement("span", "|", "icon"))
     }
   })
-  // Pad out the left with &nbsp; if needed
-  for (let i = children.length; i < 14; i ++) {
-    children.unshift(createElement("span", " ", "icon"))
-  }
   element.replaceChildren(...children)
 }
 
