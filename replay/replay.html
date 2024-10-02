@@ -30,6 +30,18 @@
             <li id="innings-tab-1"><a href="#" onclick="setInnings(1)">South Africa</a></li>
           </ul>
         </div>
+        <div class="box">
+          <a href="#" onclick="firstOnClick()"><span class="icon">⏮</span></a>
+          <a href="#" onclick="previousOnClick()"><span class="icon">◀</span></a>
+          <span id="ball-by-ball" class="ml-4 mr-4">
+            <span class="icon">6</span>
+            <span class="icon">⏺</span>
+            <span class="icon">|</span>
+            <span class="icon">1</span>
+          </span>
+          <a href="#" onclick="nextOnClick()"><span class="icon">▶</span></a>
+          <a href="#" onclick="lastOnClick()"><span class="icon">⏭</span></a>
+        </div>
         <table class="table">
           <thead>
             <th>Batting</th>
@@ -57,27 +69,18 @@
     <section class="section">
       <div class="container">
         <form action="javascript:void(0);">
-          <div class="field">
-            <label for="over">Over</label>
+          <h2 class="title is-4">Seek</h2>
+          <div class="field has-addons">
             <div class="control">
-              <input class="input" id="over" name="over" type="number" value="1">
-            </div>
-          </div>
-          <div class="field">
-            <label for="ball">Ball</label>
-            <div class="control">
-              <input class="input" id="ball" name="ball" type="number" value="0">
-            </div>
-          </div>
-          <div class="field is-grouped">
-            <div class="control">
-              <button class="button is-primary" onClick="updateOnClick()">Update</button>
+              <input class="input" type="number" placeholder="Over" id="over" name="over">
             </div>
             <div class="control">
-              <button class="button is-light" onClick="previousOnClick()">Previous</button>
+              <input class="input" type="number" placeholder="Ball" id="ball" name="ball">
             </div>
             <div class="control">
-              <button class="button is-light" onClick="nextOnClick()">Next</button>
+              <button class="button is-info" onClick="updateOnClick()">
+                Go
+              </button>
             </div>
           </div>
         </form>

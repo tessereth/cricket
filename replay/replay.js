@@ -47,7 +47,6 @@ async function loadInningsData(uri, acc) {
     acc.overs = overs.concat(acc.overs)
   }
   if (overs[0].overNumber > 1) {
-    console.log("Loading next page: ", innings.nextPage)
     const nextPage = "https://apiv2.cricket.com.au/web" + innings.nextPage
     return await loadInningsData(nextPage, acc)
   } else {
@@ -55,11 +54,49 @@ async function loadInningsData(uri, acc) {
   }
 }
 
-class Dismissal {
-  constructor(ball) {
-    this.playerId = ball.dismissalPlayerId
-    this.bowlerId = ball.bowlerPlayerId
-    this.dismissalType = ball.dismissalTypeId
+class Ball {
+  constructor(ballJson) {
+    this.ballJson = ballJson
+  }
+
+  get battingPlayerId() {
+    return this.ballJson.battingPlayerId
+  }
+
+  get bowlerPlayerId() {
+    return this.ballJson.bowlerPlayerId
+  }
+
+  get runs() {
+    return this.ballJson.runs
+  }
+
+  get runsScored() {
+    return this.ballJson.runsScored
+  }
+
+  get runsConceded() {
+    return this.ballJson.runsConceded
+  }
+
+  get isWicket() {
+    return this.ballJson.isWicket
+  }
+
+  get ballNumber() {
+    return this.ballJson.ballNumber
+  }
+
+  get type() {
+    return this.ballJson.comments[0].commentTypeId
+  }
+
+  get isIllegalDelivery() {
+    return this.type === 'Wide' || this.type === 'NoBall'
+  }
+
+  get isLastBallOfOver() {
+    return this.ballJson.ballNumber === 6 && !this.isIllegalDelivery
   }
 }
 
@@ -77,10 +114,7 @@ class BatterScore {
 
   addBall(ball) {
     this.runs += ball.runsScored
-    const typeId = ball.comments[0].commentTypeId
-    if (typeId === 'Wide' || typeId === 'NoBall') {
-      // Does not count as a ball
-    } else {
+    if (!ball.isIllegalDelivery) {
       this.balls++
     }
 
@@ -115,7 +149,7 @@ class BowlerScore {
     this.runs = 0
     this.wides = 0
     this.noBalls = 0
-    this.wickets = []
+    this.wickets = 0
   }
 
   get id() {
@@ -125,17 +159,16 @@ class BowlerScore {
   addBall(ball) {
     this.runs += ball.runsConceded
 
-    const typeId = ball.comments[0].commentTypeId
-    if (typeId === 'Wide') {
+    if (ball.type === 'Wide') {
       this.wides++
-    } else if (typeId === 'NoBall') {
+    } else if (ball.type === 'NoBall') {
       this.noBalls++
     } else {
       this.balls++
     }
 
     if (ball.isWicket) {
-      this.wickets.push(new Dismissal(ball))
+      this.wickets++
     }
   }
 
@@ -155,12 +188,13 @@ class Scorecard {
     this.bowlers = this.innings.bowlers.map((x) => new BowlerScore(x))
     this.runs = 0
     this.wickets = 0
-    this.started = false
+    this.currentOver = 0
+    this.balls = []
   }
 
-  addBall(ball) {
-    console.log(ball)
-    this.started = true
+  addBall(over, ball) {
+    this.currentOver = over
+    this.balls.push(ball)
     this.batters.forEach((batter) => {
       if (batter.id == ball.battingPlayerId) {
         batter.addBall(ball)
@@ -184,16 +218,24 @@ class Scorecard {
       return this.runs.toString()
     }
   }
+
+  overString() {
+    const lastBall = this.balls.slice(-1)[0]
+    if (lastBall.isLastBallOfOver) {
+      return `${this.currentOver + 1}.0`
+    } else {
+      return `${this.currentOver}.${lastBall.ballNumber}`
+    }
+  }
 }
 
 function generateScorecard(innings) {
   const cursor = cursors[innings]
-  console.log(cursor)
   const scorecard = new Scorecard(fixtureData.fixture.innings[innings])
   for (let over = 0; over < cursor.over; over++) {
     const ballCount = over === cursor.over - 1 ? cursor.ball : oversData[innings].overs[over].balls.length
     for (let ball = 0; ball < ballCount; ball++) {
-      scorecard.addBall(oversData[innings].overs[over].balls[ball])
+      scorecard.addBall(over, new Ball(oversData[innings].overs[over].balls[ball]))
     }
   }
   return scorecard
@@ -207,57 +249,76 @@ function renderAll() {
   console.log(scorecards)
   renderHero()
   renderInningsTabs(scorecards)
+  renderBallByBall(scorecards[inningsTab])
   renderBatterScorecard(scorecards[inningsTab])
   renderBowlerScorecard(scorecards[inningsTab])
-  renderCursorForm()
+}
+
+function createElement(tag, content, className=null) {
+  const elem = document.createElement(tag)
+  elem.textContent = content
+  if (className) {
+    elem.classList.add(className)
+  }
+  return elem
+}
+
+function renderBallByBall(scorecard) {
+  const element = document.getElementById("ball-by-ball")
+  const children = []
+  scorecard.balls.slice(-12).forEach((ball) => {
+    let text
+    if (ball.isWicket) {
+      text = 'W'
+    } else if (ball.type === 'Wide') {
+      text = 'w'
+    } else if (ball.type === 'NoBall') {
+      text = 'nb'
+    } else if (ball.runs === 0) {
+      text = '⏺'
+    } else {
+      text = ball.runs
+    }
+    children.push(createElement("span", text, "icon"))
+    if (ball.isLastBallOfOver) {
+      children.push(createElement("span", "|", "icon"))
+    }
+  })
+  // Pad out the left with &nbsp; if needed
+  for (let i = children.length; i < 14; i ++) {
+    children.unshift(createElement("span", " ", "icon"))
+  }
+  element.replaceChildren(...children)
 }
 
 function renderBatterScorecard(scorecard) {
   const element = document.getElementById("batter-scorecard")
-  element.innerHTML = ''
+  const rows = []
   scorecard.batters.forEach((batter) => {
     const row = document.createElement("tr")
-    const name = document.createElement("td")
-    name.textContent = players.get(batter.id).displayName
-    row.appendChild(name)
-    const wicket = document.createElement("td")
-    wicket.textContent = batter.dismissalText
-    row.appendChild(wicket)
-    const runs = document.createElement("td")
-    runs.textContent = batter.runsText
-    row.appendChild(runs)
-    const balls = document.createElement("td")
-    balls.textContent = batter.balls
-    row.appendChild(balls)
-    element.appendChild(row)
+    row.appendChild(createElement("td", players.get(batter.id).displayName))
+    row.appendChild(createElement("td", batter.dismissalText))
+    row.appendChild(createElement("td", batter.runsText))
+    row.appendChild(createElement("td", batter.balls))
+    rows.push(row)
   })
+  element.replaceChildren(...rows)
 }
 
 function renderBowlerScorecard(scorecard) {
   const element = document.getElementById("bowler-scorecard")
-  element.innerHTML = ''
+  const rows = []
   scorecard.bowlers.forEach((bowler) => {
     const row = document.createElement("tr")
-    const name = document.createElement("td")
-    name.textContent = players.get(bowler.id).displayName
-    row.appendChild(name)
-    const overs = document.createElement("td")
-    overs.textContent = bowler.overs
-    row.appendChild(overs)
-    const runs = document.createElement("td")
-    runs.textContent = bowler.runs
-    row.appendChild(runs)
-    const wickets = document.createElement("td")
-    wickets.textContent = bowler.wickets.length
-    row.appendChild(wickets)
-    const wides = document.createElement("td")
-    wides.textContent = bowler.wides
-    row.appendChild(wides)
-    const noBalls = document.createElement("td")
-    noBalls.textContent = bowler.noBalls
-    row.appendChild(noBalls)
-    element.appendChild(row)
+    row.appendChild(createElement("td", players.get(bowler.id).displayName))
+    row.appendChild(createElement("td", bowler.overs))
+    row.appendChild(createElement("td", bowler.runs))
+    row.appendChild(createElement("td", bowler.wickets))
+    row.appendChild(createElement("td", bowler.wides))
+    row.appendChild(createElement("td", bowler.noBalls))
+    rows.push(row)
   })
+  element.replaceChildren(...rows)
 }
 
 function scoreString(innings) {
@@ -282,8 +343,8 @@ function renderInningsTabs(scorecards) {
     } else {
       tab.classList.remove("is-active")
     }
-    if (scorecards[i].started) {
-      tab.firstChild.textContent = `${team} ${scorecards[i].scoreString()}`
+    if (scorecards[i].balls.length > 0) {
+      tab.firstChild.textContent = `${team} ${scorecards[i].scoreString()} ${scorecards[i].overString()}`
     } else {
       tab.firstChild.textContent = team
     }
@@ -297,14 +358,9 @@ function renderHero() {
   document.getElementById("date").innerHTML = new Date(fixtureData.fixture.startDateTime).toDateString()
 }
 
-function renderCursorForm() {
-  document.getElementById("over").value = cursors[inningsTab].over
-  document.getElementById("ball").value = cursors[inningsTab].ball
-}
-
 function incrementCursor(innings) {
   const cursor = cursors[innings]
-  if (cursor.ball < oversData[innings].overs[cursor.over].balls.length - 1) {
+  if (cursor.ball < oversData[innings].overs[cursor.over - 1].balls.length - 1) {
     cursor.ball++
   } else if (cursor.over < oversData[innings].overs.length - 1) {
     cursor.over++
@@ -318,7 +374,7 @@ function decrementCursor(innings) {
     cursor.ball--
   } else if (cursor.over > 0) {
     cursor.over--
-    cursor.ball = oversData[innings].overs[cursor.over].balls.length - 1
+    cursor.ball = oversData[innings].overs[cursor.over - 1].balls.length - 1
   }
 }
 
@@ -340,17 +396,39 @@ function previousOnClick() {
   renderAll()
 }
 
+function firstOnClick() {
+  cursors[inningsTab] = {over: 1, ball: 0}
+  renderAll()
+}
+
+function lastOnClick() {
+  cursors[inningsTab] = {
+    over: oversData[inningsTab].overs.length,
+    ball: oversData[inningsTab].overs.slice(-1)[0].balls.length
+  }
+  renderAll()
+}
+
+function onKeyDown(event) {
+  if (event.key === "ArrowLeft") {
+    previousOnClick()
+  } else if (event.key === "ArrowRight") {
+    nextOnClick()
+  }
+}
+
 function setInnings(innings) {
   inningsTab = innings
   renderAll()
 }
 
 async function onLoad() {
-  console.log("hi")
+  console.log("starting data load")
   const fixtureId = 17404
   await loadData(fixtureId)
   renderAll()
-  console.log("end on load")
+  console.log("data loaded")
 }
 
 document.addEventListener('DOMContentLoaded', onLoad)
+document.addEventListener('keydown', onKeyDown)
