@@ -420,7 +420,8 @@ function setInnings(innings) {
 
 async function onLoad() {
   console.log("starting data load")
-  const fixtureId = 17404
+
+  const fixtureId = new URLSearchParams(window.location.search).get('fixture') || 17404
   await loadData(fixtureId)
   renderAll()
   console.log("data loaded")
