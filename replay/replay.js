@@ -254,12 +254,10 @@ function renderAll() {
   renderBowlerScorecard(scorecards[inningsTab])
 }
 
-function createElement(tag, content, className=null) {
+function createElement(tag, content, classNames=[]) {
   const elem = document.createElement(tag)
   elem.textContent = content
-  if (className) {
-    elem.classList.add(className)
-  }
+  classNames.forEach((x) => elem.classList.add(x))
   return elem
 }
 
@@ -279,9 +277,9 @@ function renderBallByBall(scorecard) {
     } else {
       text = ball.runs
     }
-    children.push(createElement("span", text, "icon"))
+    children.push(createElement("span", text, ["icon", "ml-4"]))
     if (ball.isLastBallOfOver) {
-      children.push(createElement("span", "|", "icon"))
+      children.push(createElement("span", "|", ["icon", "ml-4"]))
     }
   })
   element.replaceChildren(...children)
@@ -340,7 +338,7 @@ function renderInningsTabs(scorecards) {
       tab.classList.remove("is-active")
     }
     if (scorecards[i].balls.length > 0) {
-      tab.firstChild.textContent = `${team} ${scorecards[i].scoreString()} ${scorecards[i].overString()}`
+      tab.firstChild.textContent = `${team} ${scorecards[i].scoreString()} (${scorecards[i].overString()})`
     } else {
       tab.firstChild.textContent = team
     }
@@ -356,9 +354,11 @@ function renderHero() {
 
 function incrementCursor(innings) {
   const cursor = cursors[innings]
-  if (cursor.ball < oversData[innings].overs[cursor.over - 1].balls.length - 1) {
+  if (cursor.over > oversData[innings].overs.length) {
+    // We've reached the end, do nothing
+  } else if (cursor.ball < oversData[innings].overs[cursor.over - 1].balls.length - 1) {
     cursor.ball++
-  } else if (cursor.over < oversData[innings].overs.length - 1) {
+  } else if (cursor.over <= oversData[innings].overs.length) {
     cursor.over++
     cursor.ball = 0
   }
