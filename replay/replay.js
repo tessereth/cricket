@@ -1,13 +1,57 @@
 const fixtureUri = (fixtureId) => `https://apiv2.cricket.com.au/web/views/scorecard?fixtureId=${fixtureId}&jsconfig=eccn%3Atrue&format=json`
 const ballsUri = (fixtureId, inningNumber) => `https://apiv2.cricket.com.au/web/views/comments?fixtureId=${fixtureId}&inningNumber=${inningNumber}&jsconfig=eccn%3Atrue&format=json`
 
+// routing
+let inningsTab
+
+// API data
 let fixtureData
 let oversData
 let teams
 let players
-let inningsTab
-let cursors
-let loading
+
+class State {
+  constructor() {
+    this.loading = true
+    this.cursors = Array.from({ length: 4 }, () => ({ over: 0, ball: 0 }));
+  }
+
+  loaded() {
+    this.loading = false
+  }
+
+  cursor(innings) {
+    return this.cursors[innings]
+  }
+
+  setCursor(innings, over, ball) {
+    this.cursors[innings] = { over, ball }
+  }
+
+  incrementCursor(innings) {
+    const cursor = this.cursors[innings]
+    if (cursor.over >= oversData[innings].overs.length) {
+      // We've reached the end, do nothing
+    } else if (cursor.ball < oversData[innings].overs[cursor.over].balls.length - 1) {
+      cursor.ball++
+    } else {
+      cursor.over++
+      cursor.ball = 0
+    }
+  }
+
+  decrementCursor(innings) {
+    const cursor = this.cursors[innings]
+    if (cursor.ball > 0) {
+      cursor.ball--
+    } else if (cursor.over > 0) {
+      cursor.over--
+      cursor.ball = oversData[innings].overs[cursor.over].balls.length - 1
+    }
+  }
+}
+
+let state = new State()
 
 function params() {
   return new URLSearchParams(window.location.search)
@@ -19,7 +63,6 @@ function fixtureId() {
 
 async function loadData(fixtureId) {
   oversData = []
-  cursors = []
   const fixture = await fetch(fixtureUri(fixtureId))
   fixtureData = await fixture.json()
 
@@ -36,9 +79,7 @@ async function loadBallData(fixtureId) {
   for (let innings = 0; innings < fixtureData.fixture.innings.length; innings++) {
     inningsOvers = await loadPaginatedBallData(ballsUri(fixtureId, innings + 1), null)
     oversData.push(inningsOvers)
-    cursors.push({over: 1, ball: 0})
   }
-  loading = false
 }
 
 async function loadPaginatedBallData(uri, acc) {
@@ -253,13 +294,13 @@ class Scorecard {
 
 function generateScorecard(innings) {
   const scorecard = new Scorecard(fixtureData.fixture.innings[innings])
-  if (!cursors[innings] || !oversData[innings]) {
+  if (!oversData[innings]) {
     // We don't have ball data, use an empty scorecard
     return scorecard
   }
-  const cursor = cursors[innings]
-  for (let over = 0; over < cursor.over; over++) {
-    const ballCount = over === cursor.over - 1 ? cursor.ball : oversData[innings].overs[over].balls.length
+  const cursor = state.cursor(innings)
+  for (let over = 0; over <= cursor.over; over++) {
+    const ballCount = over === cursor.over ? cursor.ball : oversData[innings].overs[over].balls.length
     for (let ball = 0; ball < ballCount; ball++) {
       scorecard.addBall(over, new Ball(oversData[innings].overs[over].balls[ball]))
     }
@@ -394,7 +435,7 @@ function renderHero() {
 function renderMessage() {
   const loadingIndicator = document.querySelector("[data-loading]")
   const noReplay = document.querySelector("[data-no-replay-message]")
-  if (loading) {
+  if (state.loading) {
     loadingIndicator.classList.remove("is-hidden")
     noReplay.classList.add("is-hidden")
   } else if (!oversData[0]) {
@@ -406,56 +447,32 @@ function renderMessage() {
   }
 }
 
-function incrementCursor(innings) {
-  const cursor = cursors[innings]
-  if (cursor.over > oversData[innings].overs.length) {
-    // We've reached the end, do nothing
-  } else if (cursor.ball < oversData[innings].overs[cursor.over - 1].balls.length - 1) {
-    cursor.ball++
-  } else if (cursor.over <= oversData[innings].overs.length) {
-    cursor.over++
-    cursor.ball = 0
-  }
-}
-
-function decrementCursor(innings) {
-  const cursor = cursors[innings]
-  if (cursor.ball > 0) {
-    cursor.ball--
-  } else if (cursor.over > 0) {
-    cursor.over--
-    cursor.ball = oversData[innings].overs[cursor.over - 1].balls.length - 1
-  }
-}
-
 function updateOnClick() {
-  cursors[inningsTab] = {
-    over: parseInt(document.getElementById("over").value) + 1,
-    ball: parseInt(document.getElementById("ball").value || '0')
-  }
+  const over = parseInt(document.getElementById("over").value)
+  const ball = parseInt(document.getElementById("ball").value || '0')
+  state.setCursor(inningsTab, over, ball)
   renderAll()
 }
 
 function nextOnClick() {
-  incrementCursor(inningsTab)
+  state.incrementCursor(inningsTab)
   renderAll()
 }
 
 function previousOnClick() {
-  decrementCursor(inningsTab)
+  state.decrementCursor(inningsTab)
   renderAll()
 }
 
 function firstOnClick() {
-  cursors[inningsTab] = {over: 1, ball: 0}
+  state.setCursor(inningsTab, 0, 0)
   renderAll()
 }
 
 function lastOnClick() {
-  cursors[inningsTab] = {
-    over: oversData[inningsTab].overs.length,
-    ball: oversData[inningsTab].overs.slice(-1)[0].balls.length
-  }
+  const over = oversData[inningsTab].overs.length - 1
+  const ball = oversData[inningsTab].overs.slice(-1)[0].balls.length
+  state.setCursor(inningsTab, over, ball)
   renderAll()
 }
 
@@ -474,14 +491,14 @@ function setInnings(innings) {
 
 async function onLoad() {
   console.log("starting data load")
-  loading = true
 
   inningsTab = params().get("innings") || 0
   await loadData(fixtureId())
   // Render what we can before loading the ball data
   renderAll()
   await loadBallData(fixtureId())
-  loading = false
+  state.loaded()
+
   // Render the final version
   renderAll()
   console.log("data loaded")
