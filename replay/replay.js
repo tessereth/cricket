@@ -43,6 +43,7 @@ class State {
 
   incrementCursor(innings) {
     this.cursors[innings] = this.nextCursor(innings)
+    this.setAutoPlayStartTime()
   }
 
   previousCursor(innings) {
@@ -59,23 +60,29 @@ class State {
 
   decrementCursor(innings) {
     this.cursors[innings] = this.previousCursor(innings)
+    this.setAutoPlayStartTime()
   }
 
   startAutoPlay() {
     if (this.autoPlaying) {
       return
     }
-    const innings = inningsTab
-    // The cursor points to the _next_ ball, we want the last applied ball
-    const cursor = this.previousCursor(innings)
-    const ball = new Ball(oversData[innings].overs[cursor.over].balls[cursor.ball])
-    this.autoPlayStartTime = new Date(new Date() - ball.timeIntoGame)
+    this.setAutoPlayStartTime()
     this.autoPlaying = true
     setTimeout(() => this.autoPlayRefresh(), 5000)
   }
 
   stopAutoPlay() {
     this.autoPlaying = false
+  }
+
+  setAutoPlayStartTime() {
+    const innings = inningsTab
+    // The cursor points to the _next_ ball, we want the last applied ball
+    const cursor = this.previousCursor(innings)
+    const ball = new Ball(oversData[innings].overs[cursor.over].balls[cursor.ball])
+    this.autoPlayStartTime = new Date(new Date() - ball.timeIntoGame)
+    console.log("autoPlay start time", this.autoPlayStartTime)
   }
 
   autoPlayRefresh() {
