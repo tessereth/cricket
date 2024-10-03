@@ -13,7 +13,8 @@ let players
 class State {
   constructor() {
     this.loading = true
-    this.cursors = Array.from({ length: 4 }, () => ({ over: 0, ball: 0 }));
+    this.cursors = Array.from({ length: 4 }, () => ({ over: 0, ball: 0 }))
+    this.autoPlaying = false
   }
 
   loaded() {
@@ -47,6 +48,73 @@ class State {
     } else if (cursor.over > 0) {
       cursor.over--
       cursor.ball = oversData[innings].overs[cursor.over].balls.length - 1
+    }
+  }
+
+  startAutoPlay() {
+    if (this.autoPlaying) {
+      return
+    }
+    const innings = inningsTab
+    const cursor = this.cursors[innings]
+    const ball = new Ball(oversData[innings].overs[cursor.over].balls[cursor.ball])
+    this.autoPlayStartTime = new Date(new Date() - ball.timeIntoGame)
+    this.autoPlaying = true
+    setTimeout(() => this.autoPlayRefresh(), 5000)
+  }
+
+  stopAutoPlay() {
+    this.autoPlaying = false
+  }
+
+  autoPlayRefresh() {
+    console.log("autoPlayRefresh")
+    if (!this.autoPlaying) {
+      console.log("autoPlay disabled")
+      return
+    }
+    renderAll()
+    setTimeout(() => this.autoPlayRefresh(), 5000)
+  }
+
+  generateScorecard(innings) {
+    const scorecard = new Scorecard(fixtureData.fixture.innings[innings])
+    if (!oversData[innings]) {
+      // We don't have ball data, use an empty scorecard
+      return scorecard
+    }
+    if (this.autoPlaying) {
+      this.addBallsAutoPlay(innings, scorecard)
+    } else {
+      this.addBallsCursor(innings, scorecard)
+    }
+    return scorecard
+  }
+
+  addBallsAutoPlay(innings, scorecard) {
+    for (let over = 0; over < oversData[innings].overs.length; over++) {
+      for (let ball = 0; ball < oversData[innings].overs[over].balls.length; ball++) {
+        const ballObj = new Ball(oversData[innings].overs[over].balls[ball])
+        // Substract the negative ball time because addition concatenates the string values.
+        // Just, why.
+        const ballTime = new Date(this.autoPlayStartTime - (-ballObj.timeIntoGame))
+        if (ballTime > new Date()) {
+          // save the cursor in case we turn autoplay off
+          this.cursors[innings] = { over, ball }
+          return
+        }
+        scorecard.addBall(over, ballObj)
+      }
+    }
+  }
+
+  addBallsCursor(innings, scorecard) {
+    const cursor = state.cursor(innings)
+    for (let over = 0; over <= cursor.over; over++) {
+      const ballCount = over === cursor.over ? cursor.ball : oversData[innings].overs[over].balls.length
+      for (let ball = 0; ball < ballCount; ball++) {
+        scorecard.addBall(over, new Ball(oversData[innings].overs[over].balls[ball]))
+      }
     }
   }
 }
@@ -154,6 +222,12 @@ class Ball {
 
   get isLastBallOfOver() {
     return this.ballJson.ballNumber === 6 && !this.isIllegalDelivery
+  }
+
+  get timeIntoGame() {
+    const ballTime = new Date(this.ballJson.ballDateTime)
+    const gameStartTime = new Date(fixtureData.fixture.startDateTime)
+    return ballTime - gameStartTime
   }
 }
 
@@ -292,26 +366,10 @@ class Scorecard {
   }
 }
 
-function generateScorecard(innings) {
-  const scorecard = new Scorecard(fixtureData.fixture.innings[innings])
-  if (!oversData[innings]) {
-    // We don't have ball data, use an empty scorecard
-    return scorecard
-  }
-  const cursor = state.cursor(innings)
-  for (let over = 0; over <= cursor.over; over++) {
-    const ballCount = over === cursor.over ? cursor.ball : oversData[innings].overs[over].balls.length
-    for (let ball = 0; ball < ballCount; ball++) {
-      scorecard.addBall(over, new Ball(oversData[innings].overs[over].balls[ball]))
-    }
-  }
-  return scorecard
-}
-
 function renderAll() {
   const scorecards = []
   for (let i = 0; i < fixtureData.fixture.innings.length; i++) {
-    scorecards.push(generateScorecard(i))
+    scorecards.push(state.generateScorecard(i))
   }
   console.log(scorecards)
   renderHero()
@@ -481,6 +539,14 @@ function onKeyDown(event) {
     previousOnClick()
   } else if (event.key === "ArrowRight") {
     nextOnClick()
+  }
+}
+
+function autoPlayOnClick() {
+  if (document.getElementById("autoplay").checked) {
+    state.startAutoPlay()
+  } else {
+    state.stopAutoPlay()
   }
 }
 

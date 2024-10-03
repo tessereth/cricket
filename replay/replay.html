@@ -65,7 +65,7 @@
     </section>
     <section class="section">
       <div class="container">
-        <div class="tabs is-large" id="innings-tabs">
+        <div class="tabs is-large is-boxed" id="innings-tabs">
           <ul></ul>
           <template>
             <li>
@@ -154,6 +154,12 @@
                 Go
               </button>
             </div>
+          </div>
+          <div class="field">
+            <label class="checkbox">
+              <input type="checkbox" id="autoplay" onClick="autoPlayOnClick()" />
+              Autoplay
+            </label>
           </div>
         </form>
       </div>
