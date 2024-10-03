@@ -230,6 +230,10 @@ class Ball {
     return this.ballJson.isWicket
   }
 
+  get dismissalPlayerId() {
+    return this.ballJson.dismissalPlayerId
+  }
+
   get ballNumber() {
     return this.ballJson.ballNumber
   }
@@ -270,10 +274,10 @@ class BatterScore {
     if (!ball.isIllegalDelivery) {
       this.balls++
     }
+  }
 
-    if (ball.isWicket) {
-      this.out = true
-    }
+  setOut() {
+    this.out = true
   }
 
   get dismissalText() {
@@ -353,6 +357,9 @@ class Scorecard {
     this.batters.forEach((batter) => {
       if (batter.id == ball.battingPlayerId) {
         batter.addBall(ball)
+      }
+      if (ball.isWicket && batter.id == ball.dismissalPlayerId) {
+        batter.setOut()
       }
     })
     this.bowlers.forEach((bowler) => {
