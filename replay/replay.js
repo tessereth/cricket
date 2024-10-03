@@ -8,10 +8,17 @@ let players
 let inningsTab
 let cursors
 
+function params() {
+  return new URLSearchParams(window.location.search)
+}
+
+function fixtureId() {
+  return params().get("fixture") || 17404
+}
+
 async function loadData(fixtureId) {
   const fixture = await fetch(fixtureUri(fixtureId))
   fixtureData = await fixture.json()
-  inningsTab = 0
   oversData = []
   cursors = []
   for (let innings = 0; innings < fixtureData.fixture.innings.length; innings++) {
@@ -223,7 +230,9 @@ class Scorecard {
 
   overString() {
     const lastBall = this.balls.slice(-1)[0]
-    if (lastBall.isLastBallOfOver) {
+    if (!lastBall) {
+      return "0.0"
+    } else if (lastBall.isLastBallOfOver) {
       return `${this.currentOver + 1}.0`
     } else if (lastBall.isIllegalDelivery) {
       return `${this.currentOver}.${lastBall.ballNumber - 1}`
@@ -256,13 +265,6 @@ function renderAll() {
   renderBallByBall(scorecards[inningsTab])
   renderBatterScorecard(scorecards[inningsTab])
   renderBowlerScorecard(scorecards[inningsTab])
-}
-
-function createElement(tag, content, classNames=[]) {
-  const elem = document.createElement(tag)
-  elem.textContent = content
-  classNames.forEach((x) => elem.classList.add(x))
-  return elem
 }
 
 function renderBallByBall(scorecard) {
@@ -338,31 +340,41 @@ function scoreString(innings) {
 }
 
 function renderInningsTabs(scorecards) {
-  for (let i = 0; i < oversData.length; i++) {
-    const tab = document.getElementById(`innings-tab-${i}`)
-    const team = teams.get(oversData[i].battingTeamId).shortName
+  const element = document.getElementById("innings-tabs")
+  const list = element.querySelector("ul")
+  list.innerHTML = ''
+  const template = element.querySelector("template").content
+  for (let i = 0; i < scorecards.length; i++) {
+    const tab = document.importNode(template, true)
+    tab.querySelector("[data-team]").textContent = teams.get(oversData[i].battingTeamId).shortName
+    tab.querySelector("[data-score]").textContent = scorecards[i].scoreString()
+    tab.querySelector("[data-overs]").textContent = `(${scorecards[i].overString()})`
+    const link = tab.querySelector("[data-link]")
+    const linkParams = params()
+    linkParams.set("innings", i)
+    link.href = `?${linkParams}`
+    link.addEventListener('click', (e) => {
+      e.preventDefault()
+      setInnings(i)
+    })
+
+
     if (i === inningsTab) {
-      tab.classList.add("is-active")
-    } else {
-      tab.classList.remove("is-active")
+      tab.querySelector("li").classList.add("is-active")
     }
-    if (scorecards[i].balls.length > 0) {
-      tab.firstChild.textContent = `${team} ${scorecards[i].scoreString()} (${scorecards[i].overString()})`
-    } else {
-      tab.firstChild.textContent = team
-    }
+    list.appendChild(tab)
   }
 }
 
 function renderHero() {
   const fixture = fixtureData.fixture
-  document.querySelectorAll("[data-competition-image]")[0].src = fixture.competition.imageUrl
-  document.querySelectorAll("[data-home-team]")[0].textContent = fixture.homeTeam.name
-  document.querySelectorAll("[data-home-team-image]")[0].src = fixture.homeTeam.logoUrl
-  document.querySelectorAll("[data-away-team]")[0].textContent = fixture.awayTeam.name
-  document.querySelectorAll("[data-away-team-image]")[0].src = fixture.awayTeam.logoUrl
-  document.querySelectorAll("[data-date]")[0].textContent = formatDate(fixture.startDateTime, fixture.endDateTime)
-  document.querySelectorAll("[data-game-type]")[0].textContent = fixture.gameType
+  document.querySelector("[data-competition-image]").src = fixture.competition.imageUrl
+  document.querySelector("[data-home-team]").textContent = fixture.homeTeam.name
+  document.querySelector("[data-home-team-image]").src = fixture.homeTeam.logoUrl
+  document.querySelector("[data-away-team]").textContent = fixture.awayTeam.name
+  document.querySelector("[data-away-team-image]").src = fixture.awayTeam.logoUrl
+  document.querySelector("[data-date]").textContent = formatDate(fixture.startDateTime, fixture.endDateTime)
+  document.querySelector("[data-game-type]").textContent = fixture.gameType
 }
 
 function incrementCursor(innings) {
@@ -434,8 +446,8 @@ function setInnings(innings) {
 async function onLoad() {
   console.log("starting data load")
 
-  const fixtureId = new URLSearchParams(window.location.search).get('fixture') || 17404
-  await loadData(fixtureId)
+  inningsTab = params().get("innings") || 0
+  await loadData(fixtureId())
   renderAll()
   console.log("data loaded")
 }
