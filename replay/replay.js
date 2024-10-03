@@ -7,6 +7,7 @@ let teams
 let players
 let inningsTab
 let cursors
+let loading
 
 function params() {
   return new URLSearchParams(window.location.search)
@@ -17,15 +18,10 @@ function fixtureId() {
 }
 
 async function loadData(fixtureId) {
-  const fixture = await fetch(fixtureUri(fixtureId))
-  fixtureData = await fixture.json()
   oversData = []
   cursors = []
-  for (let innings = 0; innings < fixtureData.fixture.innings.length; innings++) {
-    inningsOvers = await loadInningsData(ballsUri(fixtureId, innings + 1), null)
-    oversData.push(inningsOvers)
-    cursors.push({over: 1, ball: 0})
-  }
+  const fixture = await fetch(fixtureUri(fixtureId))
+  fixtureData = await fixture.json()
 
   teams = new Map()
   teams.set(fixtureData.fixture.homeTeam.id, fixtureData.fixture.homeTeam)
@@ -34,12 +30,25 @@ async function loadData(fixtureId) {
   fixtureData.players.forEach((player) => {
     players.set(player.id, player)
   })
-
 }
 
-async function loadInningsData(uri, acc) {
+async function loadBallData(fixtureId) {
+  for (let innings = 0; innings < fixtureData.fixture.innings.length; innings++) {
+    inningsOvers = await loadPaginatedBallData(ballsUri(fixtureId, innings + 1), null)
+    oversData.push(inningsOvers)
+    cursors.push({over: 1, ball: 0})
+  }
+  loading = false
+}
+
+async function loadPaginatedBallData(uri, acc) {
   const response = await fetch(uri)
   const innings = await response.json()
+  if (innings.inning.overs.length === 0) {
+    // Overs data not available
+    return
+  }
+
   const overs = innings.inning.overs.reverse()
   // Remove fake over zero
   if (overs[0].overNumber === 0) {
@@ -55,7 +64,7 @@ async function loadInningsData(uri, acc) {
   }
   if (overs[0].overNumber > 1) {
     const nextPage = "https://apiv2.cricket.com.au/web" + innings.nextPage
-    return await loadInningsData(nextPage, acc)
+    return await loadPaginatedBallData(nextPage, acc)
   } else {
     return acc
   }
@@ -243,8 +252,12 @@ class Scorecard {
 }
 
 function generateScorecard(innings) {
-  const cursor = cursors[innings]
   const scorecard = new Scorecard(fixtureData.fixture.innings[innings])
+  if (!cursors[innings] || !oversData[innings]) {
+    // We don't have ball data, use an empty scorecard
+    return scorecard
+  }
+  const cursor = cursors[innings]
   for (let over = 0; over < cursor.over; over++) {
     const ballCount = over === cursor.over - 1 ? cursor.ball : oversData[innings].overs[over].balls.length
     for (let ball = 0; ball < ballCount; ball++) {
@@ -256,11 +269,12 @@ function generateScorecard(innings) {
 
 function renderAll() {
   const scorecards = []
-  for (let i = 0; i < oversData.length; i ++) {
+  for (let i = 0; i < fixtureData.fixture.innings.length; i++) {
     scorecards.push(generateScorecard(i))
   }
   console.log(scorecards)
   renderHero()
+  renderMessage()
   renderInningsTabs(scorecards)
   renderBallByBall(scorecards[inningsTab])
   renderBatterScorecard(scorecards[inningsTab])
@@ -346,7 +360,7 @@ function renderInningsTabs(scorecards) {
   const template = element.querySelector("template").content
   for (let i = 0; i < scorecards.length; i++) {
     const tab = document.importNode(template, true)
-    tab.querySelector("[data-team]").textContent = teams.get(oversData[i].battingTeamId).shortName
+    tab.querySelector("[data-team]").textContent = teams.get(fixtureData.fixture.innings[i].battingTeamId).shortName
     tab.querySelector("[data-score]").textContent = scorecards[i].scoreString()
     tab.querySelector("[data-overs]").textContent = `(${scorecards[i].overString()})`
     const link = tab.querySelector("[data-link]")
@@ -375,6 +389,21 @@ function renderHero() {
   document.querySelector("[data-away-team-image]").src = fixture.awayTeam.logoUrl
   document.querySelector("[data-date]").textContent = formatDate(fixture.startDateTime, fixture.endDateTime)
   document.querySelector("[data-game-type]").textContent = fixture.gameType
+}
+
+function renderMessage() {
+  const loadingIndicator = document.querySelector("[data-loading]")
+  const noReplay = document.querySelector("[data-no-replay-message]")
+  if (loading) {
+    loadingIndicator.classList.remove("is-hidden")
+    noReplay.classList.add("is-hidden")
+  } else if (!oversData[0]) {
+    loadingIndicator.classList.add("is-hidden")
+    noReplay.classList.remove("is-hidden")
+  } else {
+    loadingIndicator.classList.add("is-hidden")
+    noReplay.classList.add("is-hidden")
+  }
 }
 
 function incrementCursor(innings) {
@@ -445,9 +474,15 @@ function setInnings(innings) {
 
 async function onLoad() {
   console.log("starting data load")
+  loading = true
 
   inningsTab = params().get("innings") || 0
   await loadData(fixtureId())
+  // Render what we can before loading the ball data
+  renderAll()
+  await loadBallData(fixtureId())
+  loading = false
+  // Render the final version
   renderAll()
   console.log("data loaded")
 }
