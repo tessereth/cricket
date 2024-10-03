@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
   </head>
   <body>
-    <section class="hero is-primary">
+    <section class="hero is-info">
       <div class="hero-body">
         <h1 class="title">
           Replay fixture selection
@@ -17,24 +17,34 @@
     </section>
     <section class="section">
       <div class="container">
-        <div class="dropdown is-hoverable">
-          <div class="dropdown-trigger">
-            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-              <span>Filter</span>
-            </button>
-          </div>
-          <div class="dropdown-menu" id="dropdown-menu" role="menu">
-            <div class="dropdown-content">
-              <a href="?filter=" class="dropdown-item">None</a>
-              <hr class="dropdown-divider" />
-              <a href="?filter=ausMen" class="dropdown-item">Australia Men</a>
-              <a href="?filter=ausWomen" class="dropdown-item">Australia Women</a>
-              <hr class="dropdown-divider" />
-              <a href="?filter=sheffieldShield" class="dropdown-item">Sheffield Shield</a>
-              <a href="?filter=marshCup" class="dropdown-item">Marsh Cup</a>
-              <a href="?filter=WNCL" class="dropdown-item">WNCL</a>
-              <a href="?filter=BBL" class="dropdown-item">BBL</a>
-              <a href="?filter=WBBL" class="dropdown-item">WBBL</a>
+        <div class="level">
+          <div class="level-left">
+            <div class="level-item">
+              <div class="dropdown is-hoverable">
+                <div class="dropdown-trigger">
+                  <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                    <span>Filter</span>
+                  </button>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                  <div class="dropdown-content">
+                    <a href="?" class="dropdown-item">None</a>
+                    <hr class="dropdown-divider" />
+                    <a href="?filter=Australia+Men" class="dropdown-item">Australia Men</a>
+                    <a href="?filter=Australia+Women" class="dropdown-item">Australia Women</a>
+                    <hr class="dropdown-divider" />
+                    <a href="?filter=Sheffield+Shield" class="dropdown-item">Sheffield Shield</a>
+                    <a href="?filter=Marsh+Cup" class="dropdown-item">Marsh Cup</a>
+                    <a href="?filter=WNCL" class="dropdown-item">WNCL</a>
+                    <a href="?filter=BBL" class="dropdown-item">BBL</a>
+                    <a href="?filter=WBBL" class="dropdown-item">WBBL</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="level-item">
+              <div class="tags" data-filter-tag>
+              </div>
             </div>
           </div>
         </div>

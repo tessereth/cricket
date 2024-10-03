@@ -21,3 +21,10 @@ function formatDate(startDateStr, endDateStr) {
   }
   return `${day} · ${hoursMinutes}`
 }
+
+function createElement(tag, content, classNames=[]) {
+  const elem = document.createElement(tag)
+  elem.textContent = content
+  classNames.forEach((x) => elem.classList.add(x))
+  return elem
+}

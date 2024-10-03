@@ -1,20 +1,28 @@
 const fixturesUri = 'https://apiv2.cricket.com.au/web/views/fixtures?jsconfig=eccn%3Atrue&format=json'
 
 const filters = {
-  ausMen: { teamId: 23 },
-  ausWomen: { teamId: 68 },
-  sheffieldShield: { competitionId: 2688 },
-  marshCup: { competitionId: 2686 },
+  "Australia Men": { teamId: 23 },
+  "Australia Women": { teamId: 68 },
+  // These competition ids are for 2024-25
+  "Sheffield Shield": { competitionId: 2688 },
+  "Marsh Cup": { competitionId: 2686 },
   WNCL: { competitionId: 2687 },
   BBL: { competitionId: 2673 },
   WBBL: { competitionId: 2667 },
 }
 
+function getFilter() {
+  const filter = new URLSearchParams(window.location.search).get('filter')
+  if (filter && filters.hasOwnProperty(filter)) {
+    return filter
+  }
+}
+
 async function getFixtures() {
   const uri = URL.parse(fixturesUri)
   uri.searchParams.set('CompletedFixturesCount', 10)
-  const filter = new URLSearchParams(window.location.search).get('filter')
-  if (filter && filters.hasOwnProperty(filter)) {
+  const filter = getFilter()
+  if (filter) {
     params = filters[filter]
     for (const [key, value] of Object.entries(params)) {
       uri.searchParams.set(key, value)
@@ -43,6 +51,17 @@ function createCard(fixture) {
   return card
 }
 
+function renderFilter() {
+  const filter = getFilter()
+  if (filter) {
+    const tag = createElement("span", filter, ["tag", "is-info", "is-light"])
+    const remove = createElement("a", "", ["delete"])
+    remove.href = "?"
+    tag.appendChild(remove)
+    document.querySelectorAll("[data-filter-tag]")[0].replaceChildren(tag)
+  }
+}
+
 function renderFixtures(fixtures) {
   console.log(fixtures)
   const element = document.getElementById("fixtures")
@@ -53,6 +72,7 @@ function renderFixtures(fixtures) {
 }
 
 async function onLoad() {
+  renderFilter()
   const fixtures = await getFixtures()
   renderFixtures(fixtures)
 }
