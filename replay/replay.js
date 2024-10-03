@@ -29,26 +29,36 @@ class State {
     this.cursors[innings] = { over, ball }
   }
 
-  incrementCursor(innings) {
+  nextCursor(innings) {
     const cursor = this.cursors[innings]
     if (cursor.over >= oversData[innings].overs.length) {
       // We've reached the end, do nothing
+      return cursor
     } else if (cursor.ball < oversData[innings].overs[cursor.over].balls.length - 1) {
-      cursor.ball++
+      return {over: cursor.over, ball: cursor.ball + 1}
     } else {
-      cursor.over++
-      cursor.ball = 0
+      return {over: cursor.over + 1, ball: 0}
+    }
+  }
+
+  incrementCursor(innings) {
+    this.cursors[innings] = this.nextCursor(innings)
+  }
+
+  previousCursor(innings) {
+    const cursor = this.cursors[innings]
+    if (cursor.ball > 0) {
+      return {over: cursor.over, ball: cursor.ball - 1}
+    } else if (cursor.over > 0) {
+      const ball = oversData[innings].overs[cursor.over - 1].balls.length - 1
+      return {over: cursor.over - 1, ball}
+    } else {
+      return cursor
     }
   }
 
   decrementCursor(innings) {
-    const cursor = this.cursors[innings]
-    if (cursor.ball > 0) {
-      cursor.ball--
-    } else if (cursor.over > 0) {
-      cursor.over--
-      cursor.ball = oversData[innings].overs[cursor.over].balls.length - 1
-    }
+    this.cursors[innings] = this.previousCursor(innings)
   }
 
   startAutoPlay() {
@@ -56,7 +66,8 @@ class State {
       return
     }
     const innings = inningsTab
-    const cursor = this.cursors[innings]
+    // The cursor points to the _next_ ball, we want the last applied ball
+    const cursor = this.previousCursor(innings)
     const ball = new Ball(oversData[innings].overs[cursor.over].balls[cursor.ball])
     this.autoPlayStartTime = new Date(new Date() - ball.timeIntoGame)
     this.autoPlaying = true
@@ -101,6 +112,10 @@ class State {
         if (ballTime > new Date()) {
           // save the cursor in case we turn autoplay off
           this.cursors[innings] = { over, ball }
+          // Check if the game's finished
+          if (innings === oversData.length - 1 && over === oversData[innings].overs.length) {
+            this.stopAutoPlay()
+          }
           return
         }
         scorecard.addBall(over, ballObj)
