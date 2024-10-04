@@ -189,9 +189,20 @@ async function loadPaginatedBallData(uri, acc) {
   if (overs[0].overNumber === 0) {
     overs.shift()
   }
-  overs.forEach((over) => (
-    over.balls = over.balls.reverse()
-  ))
+  overs.forEach((over) => {
+    // balls with the same ballNumber have non-deterministic order in the api response
+    over.balls.sort((a, b) => {
+      const aBy = [a.ballNumber, a.ballDateTime]
+      const bBy = [b.ballNumber, b.ballDateTime]
+      if (aBy < bBy) {
+        return -1
+      } else if (aBy > bBy) {
+        return 1
+      } else {
+        return 0
+      }
+    })
+  })
   if (acc === null) {
     acc = innings.inning
   } else {
