@@ -413,6 +413,7 @@ function renderAll() {
   renderMessage()
   renderInningsTabs(scorecards)
   renderBallByBall(scorecards[inningsTab])
+  renderAutoPlay()
   renderBatterScorecard(scorecards[inningsTab])
   renderBowlerScorecard(scorecards[inningsTab])
 }
@@ -542,6 +543,17 @@ function renderMessage() {
   }
 }
 
+function renderAutoPlay() {
+  const button = document.getElementById("autoplay-button")
+  if (state.autoPlaying) {
+    button.classList.add("is-inverted")
+    button.textContent = "autoplaying"
+  } else {
+    button.classList.remove("is-inverted")
+    button.textContent = "autoplay"
+  }
+}
+
 function updateOnClick() {
   const over = parseInt(document.getElementById("over").value)
   const ball = parseInt(document.getElementById("ball").value || '0')
@@ -579,16 +591,17 @@ function onKeyDown(event) {
   }
 }
 
-function autoPlayOnClick() {
-  if (document.getElementById("autoplay").checked) {
-    state.startAutoPlay()
-  } else {
-    state.stopAutoPlay()
-  }
-}
-
 function setInnings(innings) {
   inningsTab = innings
+  renderAll()
+}
+
+function toggleAutoPlay() {
+  if (state.autoPlaying) {
+    state.stopAutoPlay()
+  } else {
+    state.startAutoPlay()
+  }
   renderAll()
 }
 
