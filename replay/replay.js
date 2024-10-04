@@ -308,16 +308,6 @@ class BatterScore {
       return null
     }
   }
-
-  get runsText() {
-    if (this.balls === 0) {
-      return ''
-    } else if (!this.out) {
-      return `${this.runs}*`
-    } else {
-      return this.runs.toString()
-    }
-  }
 }
 
 class BowlerScore {
@@ -458,12 +448,28 @@ function renderBallByBall(scorecard) {
 function renderBatterScorecard(scorecard) {
   const element = document.getElementById("batter-scorecard")
   const rows = []
+  let activeCount = 0
   scorecard.batters.forEach((batter) => {
+    let active = false
+    if (!batter.out && activeCount < 2) {
+      active = true
+      activeCount++
+    }
     const row = document.createElement("tr")
     row.appendChild(createElement("td", players.get(batter.id).displayName))
-    row.appendChild(createElement("td", batter.dismissalText))
-    row.appendChild(createElement("td", batter.runsText))
-    row.appendChild(createElement("td", batter.balls > 0 ? batter.balls : ''))
+    if (active) {
+      row.appendChild(createElement("td", "not out"))
+      row.appendChild(createElement("td", `${batter.runs}*`))
+      row.appendChild(createElement("td", batter.balls))
+    } else if (batter.out) {
+      row.appendChild(createElement("td", batter.player.dismissalText))
+      row.appendChild(createElement("td", batter.runs === 0 ? "🦆" : batter.runs))
+      row.appendChild(createElement("td", batter.balls))
+    } else {
+      row.appendChild(createElement("td", ""))
+      row.appendChild(createElement("td", ""))
+      row.appendChild(createElement("td", ""))
+    }
     rows.push(row)
   })
   element.replaceChildren(...rows)
