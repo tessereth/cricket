@@ -9,6 +9,7 @@ const filters = {
   WNCL: { competitionId: 2687 },
   BBL: { competitionId: 2673 },
   WBBL: { competitionId: 2667 },
+  "Womens T20 World Cup": { competitionId: 2618 },
 }
 
 function getFilter() {
