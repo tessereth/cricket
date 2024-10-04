@@ -258,7 +258,7 @@ class Ball {
   }
 
   get type() {
-    return this.ballJson.comments[0].commentTypeId
+    return this.ballJson.comments.map(x => x.commentTypeId).find(x => x !== 'EndOfOver')
   }
 
   get isIllegalDelivery() {
