@@ -410,6 +410,7 @@ function renderAll() {
     scorecards.push(state.generateScorecard(i))
   }
   console.log(scorecards)
+  renderTitle()
   renderHero()
   renderMessage()
   renderInningsTabs(scorecards)
@@ -539,6 +540,10 @@ function renderInningsTabs(scorecards) {
     }
     list.appendChild(tab)
   }
+}
+
+function renderTitle() {
+  document.title = `${fixtureData.fixture.homeTeam.name} vs ${fixtureData.fixture.awayTeam.name}`
 }
 
 function renderHero() {

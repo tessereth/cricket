@@ -4,15 +4,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Replay fixture selection</title>
+    <title>Fixtures</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <link rel="icon" type="image/png" href="./icon_128.png">
   </head>
   <body>
     <section class="hero is-info">
       <div class="hero-body">
-        <h1 class="title">
-          Replay fixture selection
-        </h1>
+        <div class="container">
+          <h1 class="title">
+            Fixtures
+          </h1>
+        </div>
       </div>
     </section>
     <section class="section">
@@ -49,6 +52,9 @@
           </div>
         </div>
         <ul id="fixtures">
+          <li class="block">
+            <progress class="progress">Loading</progress>
+          </li>
         </ul>
       </div>
     </section>
