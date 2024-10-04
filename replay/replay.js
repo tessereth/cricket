@@ -43,7 +43,9 @@ class State {
 
   incrementCursor(innings) {
     this.cursors[innings] = this.nextCursor(innings)
-    this.setAutoPlayStartTime()
+    if (this.autoPlaying) {
+      this.setAutoPlayStartTime()
+    }
   }
 
   previousCursor(innings) {
@@ -60,7 +62,9 @@ class State {
 
   decrementCursor(innings) {
     this.cursors[innings] = this.previousCursor(innings)
-    this.setAutoPlayStartTime()
+    if (this.autoPlaying) {
+      this.setAutoPlayStartTime()
+    }
   }
 
   startAutoPlay() {
@@ -234,6 +238,10 @@ class Ball {
     return this.ballJson.dismissalPlayerId
   }
 
+  get dismissalTypeId() {
+    return this.ballJson.dismissalTypeId
+  }
+
   get ballNumber() {
     return this.ballJson.ballNumber
   }
@@ -326,7 +334,7 @@ class BowlerScore {
       this.balls++
     }
 
-    if (ball.isWicket) {
+    if (ball.isWicket && ball.dismissalTypeId !== 'RunOut') {
       this.wickets++
     }
   }
