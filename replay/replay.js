@@ -427,11 +427,18 @@ function renderBallByBall(scorecard) {
     if (ball.isWicket) {
       text = 'W'
     } else if (ball.type === 'Wide') {
-      text = 'w'
+      const extraRuns = ball.runs - 1
+      if (ball.runs > 1) {
+        text = `w${ball.runs - 1}`
+      } else {
+        text = 'w'
+      }
     } else if (ball.type === 'NoBall') {
       text = 'nb'
     } else if (ball.type === 'LegBye') {
       text = `${ball.runs}lb`
+    } else if (ball.type === 'Bye') {
+      text = `${ball.runs}b`
     } else if (ball.runs === 0) {
       text = '⏺'
     } else {
