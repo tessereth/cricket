@@ -294,7 +294,7 @@ class BatterScore {
 
   addBall(ball) {
     this.runs += ball.runsScored
-    if (!ball.isIllegalDelivery) {
+    if (ball.type !== 'Wide') {
       this.balls++
     }
   }
