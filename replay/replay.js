@@ -274,6 +274,10 @@ class Ball {
     const gameStartTime = new Date(fixtureData.fixture.startDateTime)
     return ballTime - gameStartTime
   }
+
+  get isMissingData() {
+    return !this.ballJson.ballDateTime || !this.battingPlayerId || !this.bowlerPlayerId
+  }
 }
 
 class BatterScore {
@@ -425,7 +429,9 @@ function renderBallByBall(scorecard) {
   const children = []
   scorecard.balls.forEach((ball) => {
     let text
-    if (ball.isWicket) {
+    if (ball.isMissingData) {
+      text = '?'
+    } else if (ball.isWicket) {
       text = 'W'
     } else if (ball.type === 'Wide') {
       const extraRuns = ball.runs - 1
@@ -435,7 +441,11 @@ function renderBallByBall(scorecard) {
         text = 'w'
       }
     } else if (ball.type === 'NoBall') {
-      text = 'nb'
+      if (ball.runs > 1) {
+        text = `nb${ball.runs - 1}`
+      } else {
+        text = 'nb'
+      }
     } else if (ball.type === 'LegBye') {
       text = `${ball.runs}lb`
     } else if (ball.type === 'Bye') {
