@@ -395,7 +395,7 @@ class Scorecard {
   }
 
   overString() {
-    const lastBall = this.balls.slice(-1)[0]
+    const lastBall = this.lastBall()
     if (!lastBall) {
       return "0.0"
     } else if (lastBall.isLastBallOfOver) {
@@ -405,6 +405,10 @@ class Scorecard {
     } else {
       return `${this.currentOver}.${lastBall.ballNumber}`
     }
+  }
+
+  lastBall() {
+    return this.balls.slice(-1)[0]
   }
 }
 
@@ -456,12 +460,16 @@ function renderBallByBall(scorecard) {
   const children = []
   scorecard.balls.forEach((ball) => {
     const text = ballText(ball)
-    children.push(createElement("span", text, ["icon", "ml-4"]))
+    children.push(createElement("span", text, ["icon", "mr-4"]))
     if (ball.isLastBallOfOver) {
-      children.push(createElement("span", "|", ["icon", "ml-4"]))
+      children.push(createElement("span", "|", ["icon", "mr-4"]))
     }
   })
-  element.replaceChildren(...children)
+  if (children.length > 0) {
+    element.replaceChildren(...children)
+  } else {
+    element.innerHTML = "&nbsp;"
+  }
 }
 
 function renderBatterScorecard(scorecard) {
@@ -477,6 +485,8 @@ function renderBatterScorecard(scorecard) {
     const row = document.createElement("tr")
     row.appendChild(createElement("td", players.get(batter.id).displayName))
     if (active) {
+      row.classList.add("is-selected")
+      row.classList.add("is-info")
       row.appendChild(createElement("td", "not out"))
       row.appendChild(createElement("td", `${batter.runs}*`))
       row.appendChild(createElement("td", batter.balls))
@@ -508,6 +518,10 @@ function renderBowlerScorecard(scorecard) {
     row.appendChild(createElement("td", bowler.wickets))
     row.appendChild(createElement("td", bowler.wides))
     row.appendChild(createElement("td", bowler.noBalls))
+    if (bowler.id === scorecard.lastBall().bowlerPlayerId) {
+      row.classList.add("is-selected")
+      row.classList.add("is-info")
+    }
     rows.push(row)
   })
   element.replaceChildren(...rows)

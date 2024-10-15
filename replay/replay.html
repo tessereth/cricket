@@ -89,57 +89,54 @@
             This game cannot be replayed because per ball information is not available.
           </div>
         </div>
-        <div class="box">
-          <div class="level is-size-4 has-text-weight-bold">
-            <div class="level-left">
-              <div class="level-item">
-                <a href="#" onclick="firstOnClick()"><span class="icon ml-4">⏮</span></a>
-                <a href="#" onclick="previousOnClick()"><span class="icon ml-4">◀</span></a>
-              </div>
+        <div class="box is-size-4 has-text-weight-bold">
+          <div class="block">
+            <div class="is-flex is-justify-content-flex-end is-clipped" style="white-space: nowrap;">
+              <div id="ball-by-ball">&nbsp;</div>
             </div>
-            <div class="level-right is-flex-shrink-1 is-clipped">
-              <div class="level-item">
-                <div id="ball-by-ball" style="white-space: nowrap;">
-                </div>
-              </div>
-              <div class="level-item">
-                <a href="#" onclick="nextOnClick()"><span class="icon ml-4">▶</span></a>
-                <a href="#" onclick="lastOnClick()"><span class="icon ml-4 mr-4">⏭</span></a>
-              </div>
-              <div class="level-item">
-                <button class="button" id="autoplay-button" onclick="toggleAutoPlay()">
-                  Autoplay
-                </button>
-              </div>
+          </div>
+          <div class="block">
+            <div class="is-flex is-justify-content-center">
+              <a href="#" onclick="firstOnClick()"><span class="icon ml-4">⏮</span></a>
+              <a href="#" onclick="previousOnClick()"><span class="icon ml-4">◀</span></a>
+              <a href="#" onclick="nextOnClick()"><span class="icon ml-4">▶</span></a>
+              <a href="#" onclick="lastOnClick()"><span class="icon ml-4 mr-4">⏭</span></a>
+              <button class="button" id="autoplay-button" onclick="toggleAutoPlay()">
+                Autoplay
+              </button>
             </div>
           </div>
         </div>
         <div class="columns">
           <div class="column">
-            <table class="table">
-              <thead>
-                <th>Batting</th>
-                <th>Wicket</th>
-                <th>Runs</th>
-                <th>Balls</th>
-              </thead>
-              <tbody id="batter-scorecard">
-              </tbody>
-            </table>
+            <div class="table-container">
+              <table class="table is-fullwidth">
+                <thead>
+                  <th>Batting</th>
+                  <th><abbr title="Wicket">W</abbr></th>
+                  <th><abbr title="Runs">R</abbr></th>
+                  <th><abbr title="Balls">B</abbr></th>
+                </thead>
+                <tbody id="batter-scorecard">
+                </tbody>
+              </table>
+            </div>
           </div>
           <div class="column">
-            <table class="table">
-              <thead>
-                <th>Bowling</th>
-                <th>Overs</th>
-                <th>Runs</th>
-                <th>Wickets</th>
-                <th>Wides</th>
-                <th>No balls</th>
-              </thead>
-              <tbody id="bowler-scorecard">
-              </tbody>
-            </table>
+            <div class="table-container">
+              <table class="table is-fullwidth">
+                <thead>
+                  <th>Bowling</th>
+                  <th><abbr title="Overs">O</abbr></th>
+                  <th><abbr title="Runs">R</abbr></th>
+                  <th><abbr title="Wickets">W</abbr></th>
+                  <th><abbr title="Wides">Wd</abbr></th>
+                  <th><abbr title="No balls">NB</abbr></th>
+                </thead>
+                <tbody id="bowler-scorecard">
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
