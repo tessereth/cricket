@@ -424,37 +424,38 @@ function renderAll() {
   renderBowlerScorecard(scorecards[inningsTab])
 }
 
+function ballText(ball) {
+  let impliedRuns = 0
+  if (ball.type === 'NoBall' || ball.type === 'Wide') {
+    impliedRuns = 1
+  }
+  const extraRuns = ball.runs - impliedRuns
+  const extraRunsStr = extraRuns > 0 ? extraRuns.toString() : ''
+
+  if (ball.isMissingData) {
+    return '?'
+  } else if (ball.isWicket) {
+    return `W${extraRunsStr}`
+  } else if (ball.type === 'Wide') {
+    return `w${extraRunsStr}`
+  } else if (ball.type === 'NoBall') {
+    return `nb${extraRunsStr}`
+  } else if (ball.type === 'LegBye') {
+    return `${ball.runs}lb`
+  } else if (ball.type === 'Bye') {
+    return `${ball.runs}b`
+  } else if (ball.runs === 0) {
+    return '⏺'
+  } else {
+    return ball.runs
+  }
+}
+
 function renderBallByBall(scorecard) {
   const element = document.getElementById("ball-by-ball")
   const children = []
   scorecard.balls.forEach((ball) => {
-    let text
-    if (ball.isMissingData) {
-      text = '?'
-    } else if (ball.isWicket) {
-      text = 'W'
-    } else if (ball.type === 'Wide') {
-      const extraRuns = ball.runs - 1
-      if (ball.runs > 1) {
-        text = `w${ball.runs - 1}`
-      } else {
-        text = 'w'
-      }
-    } else if (ball.type === 'NoBall') {
-      if (ball.runs > 1) {
-        text = `nb${ball.runs - 1}`
-      } else {
-        text = 'nb'
-      }
-    } else if (ball.type === 'LegBye') {
-      text = `${ball.runs}lb`
-    } else if (ball.type === 'Bye') {
-      text = `${ball.runs}b`
-    } else if (ball.runs === 0) {
-      text = '⏺'
-    } else {
-      text = ball.runs
-    }
+    const text = ballText(ball)
     children.push(createElement("span", text, ["icon", "ml-4"]))
     if (ball.isLastBallOfOver) {
       children.push(createElement("span", "|", ["icon", "ml-4"]))
