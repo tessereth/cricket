@@ -629,7 +629,7 @@ function renderGameStats(scorecards) {
     chaseOnly.forEach(x => x.classList.remove("is-hidden"))
     const target = scorecards[0].runs + 1
     document.getElementById("game-stats-target").textContent = target
-    document.getElementById("game-stats-target-run-rate").textContent = twoDP(target / oversData[inningsTab].overs.length)
+    document.getElementById("game-stats-target-run-rate").textContent = twoDP(target / fixtureData.fixture.totalOvers)
   } else {
     chaseOnly.forEach(x => x.classList.add("is-hidden"))
   }
