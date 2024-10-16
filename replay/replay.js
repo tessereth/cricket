@@ -468,6 +468,77 @@ function renderAll() {
   renderBowlerScorecard(scorecards[inningsTab])
 }
 
+function renderTitle() {
+  document.title = `${fixtureData.fixture.homeTeam.name} vs ${fixtureData.fixture.awayTeam.name}`
+}
+
+function renderHero() {
+  const fixture = fixtureData.fixture
+  document.querySelector("[data-competition-image]").src = fixture.competition.imageUrl
+  document.querySelector("[data-home-team]").textContent = fixture.homeTeam.name
+  document.querySelector("[data-home-team-image]").src = fixture.homeTeam.logoUrl
+  document.querySelector("[data-away-team]").textContent = fixture.awayTeam.name
+  document.querySelector("[data-away-team-image]").src = fixture.awayTeam.logoUrl
+  document.querySelector("[data-date]").textContent = formatDate(fixture.startDateTime, fixture.endDateTime)
+  document.querySelector("[data-game-type]").textContent = fixture.gameType
+}
+
+function renderMessage() {
+  const loadingIndicator = document.querySelector("[data-loading]")
+  const noReplay = document.querySelector("[data-no-replay-message]")
+  if (state.loading) {
+    loadingIndicator.classList.remove("is-hidden")
+    noReplay.classList.add("is-hidden")
+  } else if (!oversData[0]) {
+    loadingIndicator.classList.add("is-hidden")
+    noReplay.classList.remove("is-hidden")
+  } else {
+    loadingIndicator.classList.add("is-hidden")
+    noReplay.classList.add("is-hidden")
+  }
+}
+
+function renderInningsTabs(scorecards) {
+  const element = document.getElementById("innings-tabs")
+  const list = element.querySelector("ul")
+  list.innerHTML = ''
+  const template = element.querySelector("template").content
+  for (let i = 0; i < scorecards.length; i++) {
+    const tab = document.importNode(template, true)
+    tab.querySelector("[data-team]").textContent = teams.get(fixtureData.fixture.innings[i].battingTeamId).name
+    const link = tab.querySelector("[data-link]")
+    const linkParams = params()
+    linkParams.set("innings", i)
+    link.href = `?${linkParams}`
+    link.addEventListener('click', (e) => {
+      e.preventDefault()
+      setInnings(i)
+    })
+
+
+    if (i === inningsTab) {
+      tab.querySelector("li").classList.add("is-active")
+    }
+    list.appendChild(tab)
+  }
+}
+
+function renderGameStats(scorecards) {
+  document.getElementById("game-stats-score").textContent = scorecards[inningsTab].scoreString()
+  document.getElementById("game-stats-over").textContent = scorecards[inningsTab].overString()
+  document.getElementById("game-stats-run-rate").textContent = twoDP(scorecards[inningsTab].runRate())
+  const chaseOnly = document.querySelectorAll("[data-game-stats-chase-only]")
+  // TODO: Handle multi-round games
+  if (oversData.length === 2 && inningsTab === 1 && state.isEnd(0)) {
+    chaseOnly.forEach(x => x.classList.remove("is-hidden"))
+    const target = scorecards[0].runs + 1
+    document.getElementById("game-stats-target").textContent = target
+    document.getElementById("game-stats-target-run-rate").textContent = twoDP(target / fixtureData.fixture.totalOvers)
+  } else {
+    chaseOnly.forEach(x => x.classList.add("is-hidden"))
+  }
+}
+
 function ballText(ball) {
   let impliedRuns = 0
   if (!ball.isWicket && (ball.isNoBall || ball.isWide)) {
@@ -512,26 +583,14 @@ function renderBallByBall(scorecard) {
   }
 }
 
-function playerCell(playerId) {
-  const player = players.get(playerId)
-  const template = document.getElementById("player-dropdown").content
-  const dropdown = document.importNode(template, true)
-  dropdown.querySelector("[data-name]").textContent = player.displayName
-  dropdown.querySelector("[data-type]").textContent = player.type
-  dropdown.querySelector("[data-bat-hand]").textContent = player.battingHand
-  dropdown.querySelector("[data-bowl-hand]").textContent = player.bowlingHand
-  dropdown.querySelector("[data-bowl-type]").textContent = player.bowlingType
-  dropdown.querySelector("[data-ca-link]").href = `https://www.cricket.com.au/players/CA:${playerId}`
-  const cell = createElement("td")
-  cell.appendChild(dropdown)
-  return cell
-}
-
-function twoDP(num) {
-  if (num === Math.round(num)) {
-    return num.toString()
+function renderAutoPlay() {
+  const button = document.getElementById("autoplay-button")
+  if (state.autoPlaying) {
+    button.classList.add("is-inverted")
+    button.textContent = "autoplaying"
   } else {
-    return (Math.round(num * 100) / 100).toFixed(2)
+    button.classList.remove("is-inverted")
+    button.textContent = "autoplay"
   }
 }
 
@@ -594,93 +653,27 @@ function renderBowlerScorecard(scorecard) {
   element.replaceChildren(...rows)
 }
 
-function renderInningsTabs(scorecards) {
-  const element = document.getElementById("innings-tabs")
-  const list = element.querySelector("ul")
-  list.innerHTML = ''
-  const template = element.querySelector("template").content
-  for (let i = 0; i < scorecards.length; i++) {
-    const tab = document.importNode(template, true)
-    tab.querySelector("[data-team]").textContent = teams.get(fixtureData.fixture.innings[i].battingTeamId).name
-    const link = tab.querySelector("[data-link]")
-    const linkParams = params()
-    linkParams.set("innings", i)
-    link.href = `?${linkParams}`
-    link.addEventListener('click', (e) => {
-      e.preventDefault()
-      setInnings(i)
-    })
-
-
-    if (i === inningsTab) {
-      tab.querySelector("li").classList.add("is-active")
-    }
-    list.appendChild(tab)
-  }
+function playerCell(playerId) {
+  const player = players.get(playerId)
+  const template = document.getElementById("player-dropdown").content
+  const dropdown = document.importNode(template, true)
+  dropdown.querySelector("[data-name]").textContent = player.displayName
+  dropdown.querySelector("[data-type]").textContent = player.type
+  dropdown.querySelector("[data-bat-hand]").textContent = player.battingHand
+  dropdown.querySelector("[data-bowl-hand]").textContent = player.bowlingHand
+  dropdown.querySelector("[data-bowl-type]").textContent = player.bowlingType
+  dropdown.querySelector("[data-ca-link]").href = `https://www.cricket.com.au/players/CA:${playerId}`
+  const cell = createElement("td")
+  cell.appendChild(dropdown)
+  return cell
 }
 
-function renderGameStats(scorecards) {
-  document.getElementById("game-stats-score").textContent = scorecards[inningsTab].scoreString()
-  document.getElementById("game-stats-over").textContent = scorecards[inningsTab].overString()
-  document.getElementById("game-stats-run-rate").textContent = twoDP(scorecards[inningsTab].runRate())
-  const chaseOnly = document.querySelectorAll("[data-game-stats-chase-only]")
-  // TODO: Handle multi-round games
-  if (oversData.length === 2 && inningsTab === 1 && state.isEnd(0)) {
-    chaseOnly.forEach(x => x.classList.remove("is-hidden"))
-    const target = scorecards[0].runs + 1
-    document.getElementById("game-stats-target").textContent = target
-    document.getElementById("game-stats-target-run-rate").textContent = twoDP(target / fixtureData.fixture.totalOvers)
+function twoDP(num) {
+  if (num === Math.round(num)) {
+    return num.toString()
   } else {
-    chaseOnly.forEach(x => x.classList.add("is-hidden"))
+    return (Math.round(num * 100) / 100).toFixed(2)
   }
-}
-
-function renderTitle() {
-  document.title = `${fixtureData.fixture.homeTeam.name} vs ${fixtureData.fixture.awayTeam.name}`
-}
-
-function renderHero() {
-  const fixture = fixtureData.fixture
-  document.querySelector("[data-competition-image]").src = fixture.competition.imageUrl
-  document.querySelector("[data-home-team]").textContent = fixture.homeTeam.name
-  document.querySelector("[data-home-team-image]").src = fixture.homeTeam.logoUrl
-  document.querySelector("[data-away-team]").textContent = fixture.awayTeam.name
-  document.querySelector("[data-away-team-image]").src = fixture.awayTeam.logoUrl
-  document.querySelector("[data-date]").textContent = formatDate(fixture.startDateTime, fixture.endDateTime)
-  document.querySelector("[data-game-type]").textContent = fixture.gameType
-}
-
-function renderMessage() {
-  const loadingIndicator = document.querySelector("[data-loading]")
-  const noReplay = document.querySelector("[data-no-replay-message]")
-  if (state.loading) {
-    loadingIndicator.classList.remove("is-hidden")
-    noReplay.classList.add("is-hidden")
-  } else if (!oversData[0]) {
-    loadingIndicator.classList.add("is-hidden")
-    noReplay.classList.remove("is-hidden")
-  } else {
-    loadingIndicator.classList.add("is-hidden")
-    noReplay.classList.add("is-hidden")
-  }
-}
-
-function renderAutoPlay() {
-  const button = document.getElementById("autoplay-button")
-  if (state.autoPlaying) {
-    button.classList.add("is-inverted")
-    button.textContent = "autoplaying"
-  } else {
-    button.classList.remove("is-inverted")
-    button.textContent = "autoplay"
-  }
-}
-
-function updateOnClick() {
-  const over = parseInt(document.getElementById("over").value)
-  const ball = parseInt(document.getElementById("ball").value || '0')
-  state.setCursor(inningsTab, over, ball)
-  renderAll()
 }
 
 function nextOnClick() {
