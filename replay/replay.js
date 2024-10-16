@@ -603,39 +603,63 @@ function renderGraphs(scorecards) {
     return
   }
 
-  const wormDiv = document.getElementById("worm")
+  const graphDiv = document.getElementById("graph")
 
-  const line0 = oversData[0].overs.slice(0, state.cursor(0).over)
-  const line1 = oversData[1].overs.slice(0, state.cursor(1).over)
   const f = (innings) => ((over) => ({
     overNumber: over.overNumber,
+    totalRuns: over.totalRuns,
     totalInningRuns: over.totalInningRuns,
     team: teams.get(fixtureData.fixture.innings[innings].battingTeamId).name
   }))
-  const data = line0.map(f(0)).concat(line1.map(f(1)))
-  if (data.length === 0) {
-    wormDiv.innerText = ""
+  const data0 = oversData[0].overs.slice(0, state.cursor(0).over).map(f(0))
+  const data1 = oversData[1].overs.slice(0, state.cursor(1).over).map(f(1))
+  if (data0.length === 0) {
+    graphDiv.innerText = ""
     return
   }
+  const totalOvers = parseInt(fixtureData.fixture.totalOvers)
 
-  const worm = Plot.plot({
+  const graphOptions = {
     marks: [
       Plot.ruleY([0]),
-      Plot.line(data, {x: "overNumber", y: "totalInningRuns", z: "team", stroke: "team"}),
-      Plot.dot(data, {x: "overNumber", y: "totalInningRuns", z: "team", fill: "team"}),
     ],
     x: {
-      label: "Over",
-      domain: [1, fixtureData.fixture.totalOvers]
+      label: "Overs",
     },
     y: {
       label: "Runs",
       grid: true,
-      legend: true,
     },
-    color: { legend: true }
-  })
-  wormDiv.replaceChildren(worm)
+    color: {
+      legend: true,
+      style: {
+        fontFamily: "revert",
+        fontSize: "revert"
+      }
+    },
+    style: {
+      fontFamily: "revert",
+      fontSize: "revert"
+    },
+    marginTop: 40,
+    marginBottom: 50,
+  }
+
+  if (inningsTab === 0) {
+    graphOptions.marks.push(
+      Plot.barY(data0, {x: "overNumber", y: "totalRuns", fill: "team"})
+    )
+    graphOptions.x.domain = Array.from({length: totalOvers}, (_, i) => i + 1)
+  } else {
+    const data = data0.concat(data1)
+    graphOptions.marks.push(
+      Plot.line(data, {x: "overNumber", y: "totalInningRuns", z: "team", stroke: "team"}),
+      Plot.dot(data, {x: "overNumber", y: "totalInningRuns", z: "team", fill: "team"})
+    )
+    graphOptions.x.domain = [1, totalOvers]
+  }
+  const graph = Plot.plot(graphOptions)
+  graphDiv.replaceChildren(graph)
 }
 
 function renderBatterScorecard(scorecard) {
