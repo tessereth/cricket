@@ -220,7 +220,8 @@ class Ball {
   constructor(innings, over, ball) {
     this.ballJson = oversData[innings].overs[over].balls[ball]
     const nextBallInOver = oversData[innings].overs[over].balls[ball + 1]
-    this.isIllegalDelivery = !!nextBallInOver && nextBallInOver.ballNumber === this.ballJson.ballNumber
+    // The ballNumber is sometimes wrong, so we also check that extras have been scored
+    this.isIllegalDelivery = this.ballJson.extras > 0 && !!nextBallInOver && nextBallInOver.ballNumber === this.ballJson.ballNumber
   }
 
   get battingPlayerId() {
@@ -267,6 +268,17 @@ class Ball {
     return this.ballJson.ballNumber === 6 && !this.isIllegalDelivery
   }
 
+  get isNoBall() {
+    return this.type === "NoBall"
+  }
+
+  get isWide() {
+    // If a delivery is an illegal delivery and also a runout, we can't tell
+    // whether it's a wide or a no ball. Wides happen more often so lets just
+    // assume it's a wide.
+    return this.type === "Wide" || (this.isIllegalDelivery && !this.isNoBall)
+  }
+
   get timeIntoGame() {
     const ballTime = new Date(this.ballJson.ballDateTime)
     const gameStartTime = new Date(fixtureData.fixture.startDateTime)
@@ -292,7 +304,7 @@ class BatterScore {
 
   addBall(ball) {
     this.runs += ball.runsScored
-    if (ball.type !== 'Wide') {
+    if (!ball.isWide) {
       this.balls++
     }
   }
@@ -337,9 +349,9 @@ class BowlerScore {
   addBall(ball) {
     this.runs += ball.runsConceded
 
-    if (ball.type === 'Wide') {
+    if (ball.isWide) {
       this.wides++
-    } else if (ball.type === 'NoBall') {
+    } else if (ball.isNoBall) {
       this.noBalls++
     } else {
       this.balls++
@@ -440,7 +452,7 @@ function renderAll() {
 
 function ballText(ball) {
   let impliedRuns = 0
-  if (ball.type === 'NoBall' || ball.type === 'Wide') {
+  if (!ball.isWicket && (ball.isNoBall || ball.isWide)) {
     impliedRuns = 1
   }
   const extraRuns = ball.runs - impliedRuns
@@ -450,9 +462,9 @@ function ballText(ball) {
     return '?'
   } else if (ball.isWicket) {
     return `W${extraRunsStr}`
-  } else if (ball.type === 'Wide') {
+  } else if (ball.isWide) {
     return `w${extraRunsStr}`
-  } else if (ball.type === 'NoBall') {
+  } else if (ball.isNoBall) {
     return `nb${extraRunsStr}`
   } else if (ball.type === 'LegBye') {
     return `${ball.runs}lb`
