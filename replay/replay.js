@@ -84,7 +84,7 @@ class State {
     const innings = inningsTab
     // The cursor points to the _next_ ball, we want the last applied ball
     const cursor = this.previousCursor(innings)
-    const ball = new Ball(oversData[innings].overs[cursor.over].balls[cursor.ball])
+    const ball = new Ball(innings, cursor.over, cursor.ball)
     this.autoPlayStartTime = new Date(new Date() - ball.timeIntoGame)
     console.log("autoPlay start time", this.autoPlayStartTime)
   }
@@ -116,7 +116,7 @@ class State {
   addBallsAutoPlay(innings, scorecard) {
     for (let over = 0; over < oversData[innings].overs.length; over++) {
       for (let ball = 0; ball < oversData[innings].overs[over].balls.length; ball++) {
-        const ballObj = new Ball(oversData[innings].overs[over].balls[ball])
+        const ballObj = new Ball(innings, over, ball)
         // Substract the negative ball time because addition concatenates the string values.
         // Just, why.
         const ballTime = new Date(this.autoPlayStartTime - (-ballObj.timeIntoGame))
@@ -139,7 +139,7 @@ class State {
     for (let over = 0; over <= cursor.over; over++) {
       const ballCount = over === cursor.over ? cursor.ball : oversData[innings].overs[over].balls.length
       for (let ball = 0; ball < ballCount; ball++) {
-        scorecard.addBall(over, new Ball(oversData[innings].overs[over].balls[ball]))
+        scorecard.addBall(over, new Ball(innings, over, ball))
       }
     }
   }
@@ -217,8 +217,10 @@ async function loadPaginatedBallData(uri, acc) {
 }
 
 class Ball {
-  constructor(ballJson) {
-    this.ballJson = ballJson
+  constructor(innings, over, ball) {
+    this.ballJson = oversData[innings].overs[over].balls[ball]
+    const nextBallInOver = oversData[innings].overs[over].balls[ball + 1]
+    this.isIllegalDelivery = !!nextBallInOver && nextBallInOver.ballNumber === this.ballJson.ballNumber
   }
 
   get battingPlayerId() {
@@ -259,10 +261,6 @@ class Ball {
 
   get type() {
     return this.ballJson.comments.map(x => x.commentTypeId).find(x => x !== 'EndOfOver')
-  }
-
-  get isIllegalDelivery() {
-    return this.type === 'Wide' || this.type === 'NoBall'
   }
 
   get isLastBallOfOver() {
