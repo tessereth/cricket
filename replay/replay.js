@@ -29,9 +29,13 @@ class State {
     this.cursors[innings] = { over, ball }
   }
 
+  isEnd(innings) {
+    return this.cursors[innings].over >= oversData[innings].overs.length
+  }
+
   nextCursor(innings) {
     const cursor = this.cursors[innings]
-    if (cursor.over >= oversData[innings].overs.length) {
+    if (this.isEnd(innings)) {
       // We've reached the end, do nothing
       return cursor
     } else if (cursor.ball < oversData[innings].overs[cursor.over].balls.length - 1) {
@@ -433,6 +437,15 @@ class Scorecard {
     }
   }
 
+  runRate() {
+    const ballCount = this.balls.filter(x => !x.isIllegalDelivery).length
+    if (ballCount === 0) {
+      return 0
+    } else {
+      return this.runs * 6 / ballCount
+    }
+  }
+
   lastBall() {
     return this.balls.slice(-1)[0]
   }
@@ -448,6 +461,7 @@ function renderAll() {
   renderHero()
   renderMessage()
   renderInningsTabs(scorecards)
+  renderGameStats(scorecards)
   renderBallByBall(scorecards[inningsTab])
   renderAutoPlay()
   renderBatterScorecard(scorecards[inningsTab])
@@ -521,7 +535,6 @@ function twoDP(num) {
   }
 }
 
-
 function renderBatterScorecard(scorecard) {
   const element = document.getElementById("batter-scorecard")
   const rows = []
@@ -581,19 +594,6 @@ function renderBowlerScorecard(scorecard) {
   element.replaceChildren(...rows)
 }
 
-function scoreString(innings) {
-  const runs = innings.runsScored
-  const wickets = innings.numberOfWicketsFallen
-
-  if (innings.isDeclared) {
-    return `${wickets}d-${runs}`
-  } else if (wickets < 10) {
-    return `${wickets}-${runs}`
-  } else {
-    return runs.toString()
-  }
-}
-
 function renderInningsTabs(scorecards) {
   const element = document.getElementById("innings-tabs")
   const list = element.querySelector("ul")
@@ -601,9 +601,7 @@ function renderInningsTabs(scorecards) {
   const template = element.querySelector("template").content
   for (let i = 0; i < scorecards.length; i++) {
     const tab = document.importNode(template, true)
-    tab.querySelector("[data-team]").textContent = teams.get(fixtureData.fixture.innings[i].battingTeamId).shortName
-    tab.querySelector("[data-score]").textContent = scorecards[i].scoreString()
-    tab.querySelector("[data-overs]").textContent = `(${scorecards[i].overString()})`
+    tab.querySelector("[data-team]").textContent = teams.get(fixtureData.fixture.innings[i].battingTeamId).name
     const link = tab.querySelector("[data-link]")
     const linkParams = params()
     linkParams.set("innings", i)
@@ -618,6 +616,22 @@ function renderInningsTabs(scorecards) {
       tab.querySelector("li").classList.add("is-active")
     }
     list.appendChild(tab)
+  }
+}
+
+function renderGameStats(scorecards) {
+  document.getElementById("game-stats-score").textContent = scorecards[inningsTab].scoreString()
+  document.getElementById("game-stats-over").textContent = scorecards[inningsTab].overString()
+  document.getElementById("game-stats-run-rate").textContent = twoDP(scorecards[inningsTab].runRate())
+  const chaseOnly = document.querySelectorAll("[data-game-stats-chase-only]")
+  // TODO: Handle multi-round games
+  if (oversData.length === 2 && inningsTab === 1 && state.isEnd(0)) {
+    chaseOnly.forEach(x => x.classList.remove("is-hidden"))
+    const target = scorecards[0].runs + 1
+    document.getElementById("game-stats-target").textContent = target
+    document.getElementById("game-stats-target-run-rate").textContent = twoDP(target / oversData[inningsTab].overs.length)
+  } else {
+    chaseOnly.forEach(x => x.classList.add("is-hidden"))
   }
 }
 
