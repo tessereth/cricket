@@ -1,3 +1,5 @@
+import * as Plot from "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm"
+
 const fixtureUri = (fixtureId) => `https://apiv2.cricket.com.au/web/views/scorecard?fixtureId=${fixtureId}&jsconfig=eccn%3Atrue&format=json`
 const ballsUri = (fixtureId, inningNumber) => `https://apiv2.cricket.com.au/web/views/comments?fixtureId=${fixtureId}&inningNumber=${inningNumber}&jsconfig=eccn%3Atrue&format=json`
 
@@ -464,6 +466,7 @@ function renderAll() {
   renderGameStats(scorecards)
   renderBallByBall(scorecards[inningsTab])
   renderAutoPlay()
+  renderGraphs(scorecards)
   renderBatterScorecard(scorecards[inningsTab])
   renderBowlerScorecard(scorecards[inningsTab])
 }
@@ -592,6 +595,47 @@ function renderAutoPlay() {
     button.classList.remove("is-inverted")
     button.textContent = "autoplay"
   }
+}
+
+function renderGraphs(scorecards) {
+  // TODO: support multi-round games
+  if (oversData.length !== 2) {
+    return
+  }
+
+  const wormDiv = document.getElementById("worm")
+
+  const line0 = oversData[0].overs.slice(0, state.cursor(0).over)
+  const line1 = oversData[1].overs.slice(0, state.cursor(1).over)
+  const f = (innings) => ((over) => ({
+    overNumber: over.overNumber,
+    totalInningRuns: over.totalInningRuns,
+    team: teams.get(fixtureData.fixture.innings[innings].battingTeamId).name
+  }))
+  const data = line0.map(f(0)).concat(line1.map(f(1)))
+  if (data.length === 0) {
+    wormDiv.innerText = ""
+    return
+  }
+
+  const worm = Plot.plot({
+    marks: [
+      Plot.ruleY([0]),
+      Plot.line(data, {x: "overNumber", y: "totalInningRuns", z: "team", stroke: "team"}),
+      Plot.dot(data, {x: "overNumber", y: "totalInningRuns", z: "team", fill: "team"}),
+    ],
+    x: {
+      label: "Over",
+      domain: [1, fixtureData.fixture.totalOvers]
+    },
+    y: {
+      label: "Runs",
+      grid: true,
+      legend: true,
+    },
+    color: { legend: true }
+  })
+  wormDiv.replaceChildren(worm)
 }
 
 function renderBatterScorecard(scorecard) {
@@ -728,11 +772,20 @@ async function onLoad() {
   await loadBallData(fixtureId())
   state.loaded()
 
+  // Allow moving to the end of the game on load for debugging
+  if (params().get("end")) {
+    inningsTab = oversData.length - 1
+    for (let i = 0; i < oversData.length; i++) {
+      state.setCursorEnd(i)
+    }
+  }
+
   // Render the final version
   renderAll()
   console.log("data loaded")
 }
-if (typeof(document) !== "undefined") {
+
+function addEventListeners() {
   document.addEventListener("DOMContentLoaded", onLoad)
   document.addEventListener("keydown", onKeyDown)
   document.getElementById("first-button").addEventListener("click", firstOnClick)
@@ -740,6 +793,10 @@ if (typeof(document) !== "undefined") {
   document.getElementById("next-button").addEventListener("click", nextOnClick)
   document.getElementById("last-button").addEventListener("click", lastOnClick)
   document.getElementById("autoplay-button").addEventListener("click", toggleAutoPlay)
+}
+
+if (typeof(document) !== "undefined") {
+  addEventListeners()
 }
 
 export {
