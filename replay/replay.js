@@ -312,6 +312,14 @@ class BatterScore {
       return null
     }
   }
+
+  strikeRate() {
+    if (this.balls === 0) {
+      return 0
+    } else {
+      return this.runs / this.balls * 100
+    }
+  }
 }
 
 class BowlerScore {
@@ -350,6 +358,10 @@ class BowlerScore {
     } else {
       return `${Math.floor(this.balls / 6)}.${this.balls % 6}`
     }
+  }
+
+  economy() {
+    return this.runs / this.balls * 6
   }
 }
 
@@ -487,6 +499,15 @@ function playerCell(playerId) {
   return cell
 }
 
+function twoDP(num) {
+  if (num === Math.round(num)) {
+    return num.toString()
+  } else {
+    return (Math.round(num * 100) / 100).toFixed(2)
+  }
+}
+
+
 function renderBatterScorecard(scorecard) {
   const element = document.getElementById("batter-scorecard")
   const rows = []
@@ -505,11 +526,14 @@ function renderBatterScorecard(scorecard) {
       row.appendChild(createElement("td", "not out"))
       row.appendChild(createElement("td", `${batter.runs}*`))
       row.appendChild(createElement("td", batter.balls))
+      row.appendChild(createElement("td", twoDP(batter.strikeRate())))
     } else if (batter.out) {
       row.appendChild(createElement("td", batter.player.dismissalText))
       row.appendChild(createElement("td", batter.runs === 0 ? "🦆" : batter.runs))
       row.appendChild(createElement("td", batter.balls))
+      row.appendChild(createElement("td", twoDP(batter.strikeRate())))
     } else {
+      row.appendChild(createElement("td", ""))
       row.appendChild(createElement("td", ""))
       row.appendChild(createElement("td", ""))
       row.appendChild(createElement("td", ""))
@@ -531,6 +555,7 @@ function renderBowlerScorecard(scorecard) {
     row.appendChild(createElement("td", bowler.overs))
     row.appendChild(createElement("td", bowler.runs))
     row.appendChild(createElement("td", bowler.wickets))
+    row.appendChild(createElement("td", twoDP(bowler.economy())))
     row.appendChild(createElement("td", bowler.wides))
     row.appendChild(createElement("td", bowler.noBalls))
     if (bowler.id === scorecard.lastBall().bowlerPlayerId) {
