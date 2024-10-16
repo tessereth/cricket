@@ -472,6 +472,21 @@ function renderBallByBall(scorecard) {
   }
 }
 
+function playerCell(playerId) {
+  const player = players.get(playerId)
+  const template = document.getElementById("player-dropdown").content
+  const dropdown = document.importNode(template, true)
+  dropdown.querySelector("[data-name]").textContent = player.displayName
+  dropdown.querySelector("[data-type]").textContent = player.type
+  dropdown.querySelector("[data-bat-hand]").textContent = player.battingHand
+  dropdown.querySelector("[data-bowl-hand]").textContent = player.bowlingHand
+  dropdown.querySelector("[data-bowl-type]").textContent = player.bowlingType
+  dropdown.querySelector("[data-ca-link]").href = `https://www.cricket.com.au/players/CA:${playerId}`
+  const cell = createElement("td")
+  cell.appendChild(dropdown)
+  return cell
+}
+
 function renderBatterScorecard(scorecard) {
   const element = document.getElementById("batter-scorecard")
   const rows = []
@@ -483,7 +498,7 @@ function renderBatterScorecard(scorecard) {
       activeCount++
     }
     const row = document.createElement("tr")
-    row.appendChild(createElement("td", players.get(batter.id).displayName))
+    row.appendChild(playerCell(batter.id))
     if (active) {
       row.classList.add("is-selected")
       row.classList.add("is-info")
@@ -512,7 +527,7 @@ function renderBowlerScorecard(scorecard) {
       return
     }
     const row = document.createElement("tr")
-    row.appendChild(createElement("td", players.get(bowler.id).displayName))
+    row.appendChild(playerCell(bowler.id))
     row.appendChild(createElement("td", bowler.overs))
     row.appendChild(createElement("td", bowler.runs))
     row.appendChild(createElement("td", bowler.wickets))

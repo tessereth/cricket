@@ -66,6 +66,8 @@
     </section>
     <section class="section">
       <div class="container">
+
+        <!-- Innings tabs -->
         <div class="tabs is-large is-boxed" id="innings-tabs">
           <ul></ul>
           <template>
@@ -89,6 +91,8 @@
             This game cannot be replayed because per ball information is not available.
           </div>
         </div>
+
+        <!-- Ball by ball -->
         <div class="box is-size-4 has-text-weight-bold">
           <div class="block">
             <div class="is-flex is-justify-content-flex-end is-clipped" style="white-space: nowrap;">
@@ -108,36 +112,51 @@
           </div>
         </div>
         <div class="columns">
+
+          <!-- Batting scorecard -->
           <div class="column">
-            <div class="table-container">
-              <table class="table is-fullwidth">
-                <thead>
-                  <th>Batting</th>
-                  <th><abbr title="Wicket">W</abbr></th>
-                  <th><abbr title="Runs">R</abbr></th>
-                  <th><abbr title="Balls">B</abbr></th>
-                </thead>
-                <tbody id="batter-scorecard">
-                </tbody>
-              </table>
-            </div>
+            <table class="table is-fullwidth">
+              <thead>
+                <th>Batting</th>
+                <th><abbr title="Wicket">W</abbr></th>
+                <th><abbr title="Runs">R</abbr></th>
+                <th><abbr title="Balls">B</abbr></th>
+              </thead>
+              <tbody id="batter-scorecard">
+              </tbody>
+            </table>
           </div>
+
+          <!-- Bowling scorecard -->
           <div class="column">
-            <div class="table-container">
-              <table class="table is-fullwidth">
-                <thead>
-                  <th>Bowling</th>
-                  <th><abbr title="Overs">O</abbr></th>
-                  <th><abbr title="Runs">R</abbr></th>
-                  <th><abbr title="Wickets">W</abbr></th>
-                  <th><abbr title="Wides">Wd</abbr></th>
-                  <th><abbr title="No balls">NB</abbr></th>
-                </thead>
-                <tbody id="bowler-scorecard">
-                </tbody>
-              </table>
-            </div>
+            <table class="table is-fullwidth">
+              <thead>
+                <th>Bowling</th>
+                <th><abbr title="Overs">O</abbr></th>
+                <th><abbr title="Runs">R</abbr></th>
+                <th><abbr title="Wickets">W</abbr></th>
+                <th><abbr title="Wides">Wd</abbr></th>
+                <th><abbr title="No balls">NB</abbr></th>
+              </thead>
+              <tbody id="bowler-scorecard">
+              </tbody>
+            </table>
           </div>
+
+          <!-- Player hover -->
+          <template id="player-dropdown">
+            <div class="dropdown is-hoverable">
+              <div class="dropdown-trigger" data-name></div>
+              <div class="dropdown-menu" role="menu">
+                <div class="dropdown-content">
+                  <div class="dropdown-item" data-type></div>
+                  <div class="dropdown-item"><span data-bat-hand></span> Handed Bat</div>
+                  <div class="dropdown-item"><span data-bowl-hand></span>-Arm <span data-bowl-type></span></div>
+                  <a class="dropdown-item" href="#" target="_blank" data-ca-link>More info</a>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </section>
