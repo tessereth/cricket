@@ -101,11 +101,11 @@
           </div>
           <div class="block">
             <div class="is-flex is-justify-content-center">
-              <a href="#" onclick="firstOnClick()"><span class="icon ml-4">⏮</span></a>
-              <a href="#" onclick="previousOnClick()"><span class="icon ml-4">◀</span></a>
-              <a href="#" onclick="nextOnClick()"><span class="icon ml-4">▶</span></a>
-              <a href="#" onclick="lastOnClick()"><span class="icon ml-4 mr-4">⏭</span></a>
-              <button class="button" id="autoplay-button" onclick="toggleAutoPlay()">
+              <a href="#" id="first-button"><span class="icon ml-4">⏮</span></a>
+              <a href="#" id="previous-button"><span class="icon ml-4">◀</span></a>
+              <a href="#" id="next-button"><span class="icon ml-4">▶</span></a>
+              <a href="#" id="last-button"><span class="icon ml-4 mr-4">⏭</span></a>
+              <button class="button" id="autoplay-button">
                 Autoplay
               </button>
             </div>
@@ -162,27 +162,7 @@
         </div>
       </div>
     </section>
-    <section class="section">
-      <div class="container">
-        <form action="javascript:void(0);">
-          <h2 class="title is-4">Seek</h2>
-          <div class="field has-addons">
-            <div class="control">
-              <input class="input" type="number" placeholder="Over" id="over" name="over">
-            </div>
-            <div class="control">
-              <input class="input" type="number" placeholder="Ball" id="ball" name="ball">
-            </div>
-            <div class="control">
-              <button class="button is-info" onClick="updateOnClick()">
-                Go
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </section>
     <script src="./lib.js"></script>
-    <script src="./replay.js"></script>
+    <script src="./replay.js" type="module"></script>
   </body>
 </html>

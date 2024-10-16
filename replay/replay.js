@@ -5,8 +5,8 @@ const ballsUri = (fixtureId, inningNumber) => `https://apiv2.cricket.com.au/web/
 let inningsTab
 
 // API data
-let fixtureData
-let oversData
+let fixtureData = {}
+let oversData = []
 let teams
 let players
 
@@ -65,6 +65,10 @@ class State {
     if (this.autoPlaying) {
       this.setAutoPlayStartTime()
     }
+  }
+
+  setCursorEnd(innings) {
+    this.setCursor(innings, oversData[innings].overs.length, 0)
   }
 
   startAutoPlay() {
@@ -135,7 +139,7 @@ class State {
   }
 
   addBallsCursor(innings, scorecard) {
-    const cursor = state.cursor(innings)
+    const cursor = this.cursor(innings)
     for (let over = 0; over <= cursor.over; over++) {
       const ballCount = over === cursor.over ? cursor.ball : oversData[innings].overs[over].balls.length
       for (let ball = 0; ball < ballCount; ball++) {
@@ -171,7 +175,7 @@ async function loadData(fixtureId) {
 
 async function loadBallData(fixtureId) {
   for (let innings = 0; innings < fixtureData.fixture.innings.length; innings++) {
-    inningsOvers = await loadPaginatedBallData(ballsUri(fixtureId, innings + 1), null)
+    const inningsOvers = await loadPaginatedBallData(ballsUri(fixtureId, innings + 1), null)
     oversData.push(inningsOvers)
   }
 }
@@ -681,9 +685,7 @@ function firstOnClick() {
 }
 
 function lastOnClick() {
-  const over = oversData[inningsTab].overs.length - 1
-  const ball = oversData[inningsTab].overs.slice(-1)[0].balls.length
-  state.setCursor(inningsTab, over, ball)
+  state.setCursorEnd(inningsTab)
   renderAll()
 }
 
@@ -723,6 +725,20 @@ async function onLoad() {
   renderAll()
   console.log("data loaded")
 }
+if (typeof(document) !== "undefined") {
+  document.addEventListener("DOMContentLoaded", onLoad)
+  document.addEventListener("keydown", onKeyDown)
+  document.getElementById("first-button").addEventListener("click", firstOnClick)
+  document.getElementById("previous-button").addEventListener("click", previousOnClick)
+  document.getElementById("next-button").addEventListener("click", nextOnClick)
+  document.getElementById("last-button").addEventListener("click", lastOnClick)
+  document.getElementById("autoplay-button").addEventListener("click", toggleAutoPlay)
+}
 
-document.addEventListener('DOMContentLoaded', onLoad)
-document.addEventListener('keydown', onKeyDown)
+export {
+  fixtureData,
+  oversData,
+  loadData,
+  loadBallData,
+  State,
+}
