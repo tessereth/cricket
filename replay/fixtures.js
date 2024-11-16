@@ -39,14 +39,14 @@ function createCard(fixture) {
   const template = document.getElementById("fixture-template").content
   const card = document.importNode(template, true)
   card.querySelectorAll("[data-replay-link]")[0].href = `replay.html?fixture=${fixture.id}`
-  card.querySelectorAll("[data-competition-image]")[0].src = fixture.competition.imageUrl
+  card.querySelectorAll("[data-competition-image]")[0].src = fixture.competition?.imageUrl
   card.querySelectorAll("[data-home-team]")[0].textContent = fixture.homeTeam.name
   card.querySelectorAll("[data-home-team-image]")[0].src = fixture.homeTeam.logoUrl
   card.querySelectorAll("[data-away-team]")[0].textContent = fixture.awayTeam.name
   card.querySelectorAll("[data-away-team-image]")[0].src = fixture.awayTeam.logoUrl
   card.querySelectorAll("[data-date]")[0].textContent = formatDate(fixture.startDateTime, fixture.endDateTime)
   card.querySelectorAll("[data-game-type]")[0].textContent = fixture.gameType
-  const footer = [fixture.competition.name, fixture.name, `${fixture.venue.name}, ${fixture.venue.city}`].filter((x) => x).join(" · ")
+  const footer = [fixture.competition?.name, fixture.name, `${fixture.venue.name}, ${fixture.venue.city}`].filter((x) => x).join(" · ")
   card.querySelectorAll("[data-footer]")[0].textContent = footer
   // TODO: update content
   return card
